@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冒險記錄</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:#f7f5f2;color:#1a1a1a;min-height:100vh}
+
+header{
+  background:#fff;border-bottom:1px solid #e8e3dc;
+  padding:14px 20px;display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:100;
+}
+.logo{font-family:'Noto Serif TC',serif;font-size:16px;font-weight:500;color:#1a1a1a;flex:1;letter-spacing:.04em}
+.logo em{font-style:normal;color:#999;font-family:'Noto Sans TC',sans-serif;font-size:12px;font-weight:300;margin-left:8px}
+.hbtn{padding:6px 12px;font-size:12px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;cursor:pointer;transition:all .15s;font-family:'Noto Sans TC',sans-serif}
+.hbtn:hover{border-color:#bbb;color:#222;background:#fafafa}
+.hbtn.red:hover{border-color:#e0a0a0;color:#c04040;background:#fff5f5}
+
+main{max-width:680px;margin:0 auto;padding:24px 16px 80px}
+
+.add-box{background:#fff;border:1px solid #e8e3dc;border-radius:10px;padding:16px;margin-bottom:24px}
+.add-box-title{font-size:11px;font-weight:500;color:#aaa;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.add-row{display:flex;gap:8px;flex-wrap:wrap}
+.inp{background:#f7f5f2;border:1px solid #e0dbd4;border-radius:6px;color:#1a1a1a;font-family:'Noto Sans TC',sans-serif;font-size:14px;padding:8px 12px;outline:none;transition:border .15s}
+.inp:focus{border-color:#aaa;background:#fff}
+.inp::placeholder{color:#bbb}
+.sel{background:#f7f5f2;border:1px solid #e0dbd4;border-radius:6px;color:#555;font-family:'Noto Sans TC',sans-serif;font-size:13px;padding:8px 10px;outline:none;cursor:pointer}
+.sel:focus{border-color:#aaa}
+.swatches{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 0}
+.swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;flex-shrink:0}
+.swatch:hover{transform:scale(1.15)}
+.swatch.on{border-color:#1a1a1a !important}
+.btn{padding:8px 18px;font-size:13px;font-family:'Noto Sans TC',sans-serif;border:1px solid #ddd;border-radius:6px;background:#fff;color:#333;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{background:#f5f5f5;border-color:#ccc}
+.btn.pri{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn.pri:hover{background:#333}
+.btn.sm{padding:5px 12px;font-size:12px}
+.btn.ghost{background:transparent;color:#888;border-color:#e5e5e5}
+.btn.ghost:hover{color:#333;border-color:#ccc;background:#fafafa}
+
+.stats{font-size:12px;color:#bbb;margin-bottom:14px;display:flex;gap:12px}
+
+.tree{display:flex;flex-direction:column;gap:6px}
+.node-wrap{position:relative}
+.node-row{display:flex;align-items:flex-start;gap:6px}
+
+/* connector */
+.conn{width:22px;flex-shrink:0;position:relative;align-self:stretch;padding-top:20px}
+.conn::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:1px;background:#e5e0d8}
+.conn::after{content:'';position:absolute;left:10px;top:20px;width:12px;height:1px;background:#e5e0d8}
+
+.node-main{flex:1;min-width:0}
+
+/* card */
+.card{background:#fff;border:1px solid #e8e3dc;border-radius:10px;overflow:hidden;transition:border-color .2s}
+.card:hover{border-color:#d0c8be}
+
+.card-head{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;user-select:none}
+.chevron{font-size:9px;color:#ccc;flex-shrink:0;transition:transform .2s;line-height:1}
+.chevron.open{transform:rotate(90deg)}
+.color-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tag-pill{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;letter-spacing:.04em;flex-shrink:0}
+.card-title{font-size:14px;font-weight:500;flex:1;line-height:1.4;word-break:break-all}
+.card-date{font-size:11px;color:#ccc;flex-shrink:0}
+
+/* body */
+.card-body{border-top:1px solid #f0ebe4;padding:10px 14px 12px;display:none}
+.card-body.open{display:block}
+.card-note{font-size:13px;color:#555;line-height:1.7;white-space:pre-wrap;word-break:break-word;font-family:'Noto Serif TC',serif;font-weight:300}
+
+/* edit form */
+.edit-form{padding:2px 0 0;display:flex;flex-direction:column;gap:8px}
+.form-label{font-size:11px;color:#aaa;font-weight:500;letter-spacing:.06em;margin-bottom:3px}
+.form-row{display:flex;gap:8px;flex-wrap:wrap}
+.form-group{display:flex;flex-direction:column;flex:1;min-width:110px}
+.edit-form textarea{min-height:72px;resize:vertical;line-height:1.6}
+.form-btns{display:flex;gap:6px}
+
+/* child form */
+.child-form{background:#fff;border:1px solid #e8e3dc;border-radius:10px;padding:12px 14px;margin-top:5px;display:flex;flex-direction:column;gap:8px}
+
+.children{padding-left:22px;margin-top:5px;display:flex;flex-direction:column;gap:5px}
+
+/* node actions */
+.node-actions{display:flex;flex-direction:column;gap:3px;padding-top:4px}
+.act{width:26px;height:26px;border-radius:5px;border:1px solid #ece8e2;background:#fff;color:#bbb;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.act:hover{border-color:#ccc;color:#555;background:#f7f5f2}
+.act.red:hover{border-color:#f0b0b0;color:#c04040;background:#fff5f5}
+.act.add:hover{border-color:#b0d0b0;color:#3a8a3a;background:#f5fff5}
+
+.empty{text-align:center;padding:48px 20px;color:#ccc;border:1px dashed #e5e0d8;border-radius:10px}
+.empty strong{display:block;font-size:15px;color:#bbb;font-family:'Noto Serif TC',serif;margin-bottom:6px;font-weight:400}
+
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:22px;width:100%;max-width:360px;border:1px solid #e8e3dc}
+.modal h3{font-family:'Noto Serif TC',serif;font-size:16px;font-weight:400;margin-bottom:10px}
+.modal p{font-size:13px;color:#777;line-height:1.7;margin-bottom:16px}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">冒險記錄 <em>DND 心智圖筆記</em></div>
+  <button class="hbtn" onclick="exportData()">匯出</button>
+  <button class="hbtn" onclick="document.getElementById('imp').click()">匯入</button>
+  <button class="hbtn red" onclick="document.getElementById('clr-modal').classList.add('open')">清除</button>
+  <input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)">
+</header>
+
+<main>
+  <div class="add-box">
+    <div class="add-box-title">新增主線節點</div>
+    <div class="add-row">
+      <input class="inp" style="flex:1;min-width:140px" id="root-inp" placeholder="主線事件標題...">
+      <select class="sel" id="root-tag">
+        <option value="事件">⚡ 事件</option>
+        <option value="NPC">👤 NPC</option>
+        <option value="地點">🗺 地點</option>
+        <option value="物品">📦 物品</option>
+        <option value="任務">📜 任務</option>
+        <option value="秘密">🔒 秘密</option>
+      </select>
+      <button class="btn pri" onclick="addRoot()">＋ 新增</button>
+    </div>
+    <div class="swatches" id="root-sw"></div>
+  </div>
+
+  <div class="stats">
+    <span id="s-count"></span>
+    <span id="s-roots"></span>
+  </div>
+
+  <div class="tree" id="tree"></div>
+</main>
+
+<div class="modal-bg" id="clr-modal">
+  <div class="modal">
+    <h3>清除所有資料？</h3>
+    <p>這將刪除所有節點記錄，無法復原。建議先匯出備份。</p>
+    <div class="modal-btns">
+      <button class="btn ghost" onclick="document.getElementById('clr-modal').classList.remove('open')">取消</button>
+      <button class="btn" style="border-color:#f0b0b0;color:#c04040" onclick="clearAll()">確認清除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PALETTE=[
+  {name:'石板灰', bg:'#f5f5f5', border:'#d0d0d0', dot:'#888'},
+  {name:'珊瑚紅', bg:'#fff5f5', border:'#f5c0c0', dot:'#d05050'},
+  {name:'薰衣紫', bg:'#f8f5ff', border:'#d8c8f8', dot:'#7a5abf'},
+  {name:'蒼翠綠', bg:'#f3fbf5', border:'#b8e8c4', dot:'#3a8a5a'},
+  {name:'天空藍', bg:'#f3f8ff', border:'#b8d8f8', dot:'#3a70c0'},
+  {name:'琥珀黃', bg:'#fffbf0', border:'#f0dca8', dot:'#c08020'},
+  {name:'玫瑰粉', bg:'#fff5f8', border:'#f5c8d8', dot:'#c05080'},
+  {name:'墨色',   bg:'#f5f5f3', border:'#c8c5be', dot:'#3a3830'},
+];
+
+const TAG_STYLE={
+  '事件':{bg:'rgba(220,140,60,.1)',  color:'#a05010'},
+  'NPC' :{bg:'rgba(100,80,200,.1)',  color:'#4030a0'},
+  '地點':{bg:'rgba(40,140,100,.1)',  color:'#1a7858'},
+  '物品':{bg:'rgba(180,140,30,.1)',  color:'#907010'},
+  '任務':{bg:'rgba(50,120,220,.1)',  color:'#2050a0'},
+  '秘密':{bg:'rgba(150,60,150,.1)',  color:'#7a2a7a'},
+};
+
+let nodes={},rootIds=[],nextId=1,editingId=null,addingChildOf=null;
+
+function load(){
+  try{
+    const d=localStorage.getItem('dnd-v3');
+    if(d){
+      const p=JSON.parse(d);
+      nodes=p.nodes||{};rootIds=p.rootIds||[];nextId=p.nextId||1;
+      Object.values(nodes).forEach(n=>{
+        if(n.ci===undefined)n.ci=0;
+        if(n.open===undefined)n.open=false;
+        if(n.expanded===undefined)n.expanded=true;
+      });
+    } else seed();
+  }catch(e){seed();}
+}
+function save(){localStorage.setItem('dnd-v3',JSON.stringify({nodes,rootIds,nextId}));}
+function uid(){return 'n'+(nextId++);}
+function mk(title,note,tag,parentId,ci){
+  const id=uid();
+  nodes[id]={id,title,note:note||'',tag:tag||'事件',parentId:parentId||null,
+    children:[],expanded:true,open:false,ci:ci!==undefined?ci:0,
+    created:new Date().toLocaleDateString('zh-TW')};
+  return id;
+}
+
+function seed(){
+  const r=mk('第一章：命運之夜','玩家們在邊境酒館相遇，接到了神秘委託。','事件',null,0);
+  rootIds.push(r);
+  const n1=mk('神秘委託人','戴兜帽的老人，付了豐厚訂金，身份不明。','NPC',r,2);
+  nodes[r].children.push(n1);
+  const n2=mk('酒館「醉龍」','位於邊境城鎮，老闆 Gordan 知道很多秘密。','地點',r,3);
+  nodes[r].children.push(n2);
+  const n3=mk('黑暗密函','內容加密，只知道目的地是北方廢墟。','物品',r,5);
+  nodes[r].children.push(n3);
+  const n3a=mk('密文解讀','Talia 識破了第一層加密，發現了一組座標。','事件',n3,4);
+  nodes[n3].children.push(n3a);
+  save();
+}
+
+let rootCi=0;
+function buildSw(id,cur,cb){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML='';
+  PALETTE.forEach((c,i)=>{
+    const s=document.createElement('div');
+    s.className='swatch'+(i===cur?' on':'');
+    s.style.background=c.dot;
+    s.title=c.name;
+    s.onclick=e=>{e.stopPropagation();cb(i);};
+    el.appendChild(s);
+  });
+}
+function initRootSw(){buildSw('root-sw',rootCi,i=>{rootCi=i;initRootSw();});}
+
+function addRoot(){
+  const t=document.getElementById('root-inp').value.trim();if(!t)return;
+  const tag=document.getElementById('root-tag').value;
+  const id=mk(t,'',tag,null,rootCi);
+  rootIds.push(id);
+  document.getElementById('root-inp').value='';
+  save();render();
+}
+
+function delNode(id){
+  function dt(nid){nodes[nid].children.forEach(c=>dt(c));delete nodes[nid];}
+  const n=nodes[id];
+  if(n.parentId)nodes[n.parentId].children=nodes[n.parentId].children.filter(c=>c!==id);
+  else rootIds=rootIds.filter(r=>r!==id);
+  dt(id);
+  if(editingId===id)editingId=null;
+  if(addingChildOf===id)addingChildOf=null;
+  save();render();
+}
+
+function clearAll(){
+  nodes={};rootIds=[];nextId=1;editingId=null;addingChildOf=null;
+  save();document.getElementById('clr-modal').classList.remove('open');render();
+}
+function exportData(){
+  const b=new Blob([JSON.stringify({nodes,rootIds,nextId},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='dnd-notes-'+new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')+'.json';a.click();
+}
+function importData(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      nodes=d.nodes||{};rootIds=d.rootIds||[];nextId=d.nextId||1;
+      Object.values(nodes).forEach(n=>{
+        if(n.ci===undefined)n.ci=0;
+        if(n.open===undefined)n.open=false;
+        if(n.expanded===undefined)n.expanded=true;
+      });
+      save();render();
+    }catch{alert('匯入失敗：格式不正確');}
+  };
+  r.readAsText(f);e.target.value='';
+}
+
+function render(){
+  const cnt=Object.keys(nodes).length;
+  document.getElementById('s-count').textContent=cnt+' 則筆記';
+  document.getElementById('s-roots').textContent=rootIds.length+' 條主線';
+  const tree=document.getElementById('tree');
+  tree.innerHTML='';
+  if(rootIds.length===0){
+    tree.innerHTML='<div class="empty"><strong>冒險記錄為空</strong>輸入第一個主線事件開始記錄。</div>';
+  } else {
+    rootIds.forEach(id=>tree.appendChild(rNode(id,0)));
+  }
+}
+
+function rNode(id,depth){
+  const n=nodes[id];
+  const pal=PALETTE[n.ci]||PALETTE[0];
+  const ts=TAG_STYLE[n.tag]||{bg:'#f0f0f0',color:'#666'};
+
+  const wrap=document.createElement('div');wrap.className='node-wrap';
+  const row=document.createElement('div');row.className='node-row';
+
+  if(depth>0){
+    const cn=document.createElement('div');cn.className='conn';row.appendChild(cn);
+  }
+
+  const main=document.createElement('div');main.className='node-main';
+
+  // card
+  const card=document.createElement('div');card.className='card';
+  card.style.borderColor=pal.border;
+  card.style.background=pal.bg;
+
+  // head
+  const head=document.createElement('div');head.className='card-head';
+  const hasContent=n.note||editingId===id;
+  head.onclick=e=>{
+    if(e.target.closest('.act,.edit-form,.child-form,.btn,.swatch'))return;
+    if(hasContent||editingId===id){n.open=!n.open;save();render();}
+  };
+
+  const chev=document.createElement('span');
+  chev.className='chevron'+(n.open||editingId===id?' open':'');
+  chev.textContent='▶';
+  chev.style.visibility=hasContent||editingId===id?'visible':'hidden';
+  head.appendChild(chev);
+
+  const dot=document.createElement('div');dot.className='color-dot';dot.style.background=pal.dot;
+  head.appendChild(dot);
+
+  const tagpill=document.createElement('span');tagpill.className='tag-pill';
+  tagpill.style.background=ts.bg;tagpill.style.color=ts.color;
+  tagpill.textContent=n.tag;head.appendChild(tagpill);
+
+  const titleEl=document.createElement('span');titleEl.className='card-title';titleEl.textContent=n.title;
+  head.appendChild(titleEl);
+
+  const dateEl=document.createElement('span');dateEl.className='card-date';dateEl.textContent=n.created;
+  head.appendChild(dateEl);
+
+  card.appendChild(head);
+
+  // body
+  const body=document.createElement('div');
+  body.className='card-body'+((n.open||editingId===id)?' open':'');
+
+  if(editingId===id){
+    body.appendChild(buildEditForm(n));
+  } else if(n.note){
+    const noteEl=document.createElement('div');noteEl.className='card-note';noteEl.textContent=n.note;
+    body.appendChild(noteEl);
+  }
+  card.appendChild(body);
+  main.appendChild(card);
+
+  // child add form
+  if(addingChildOf===id)main.appendChild(buildChildForm(id));
+
+  // children
+  if(n.expanded&&n.children.length>0){
+    const ch=document.createElement('div');ch.className='children';
+    n.children.forEach(cid=>ch.appendChild(rNode(cid,depth+1)));
+    main.appendChild(ch);
+  }
+
+  row.appendChild(main);
+
+  // actions
+  const acts=document.createElement('div');acts.className='node-actions';
+  const aAdd=document.createElement('button');aAdd.className='act add';aAdd.title='新增子節點';aAdd.textContent='＋';
+  aAdd.onclick=e=>{e.stopPropagation();addingChildOf=(addingChildOf===id?null:id);editingId=null;nodes[id].expanded=true;render();setTimeout(()=>{const el=document.getElementById('cf-t-'+id);if(el)el.focus();},50);};
+  const aEd=document.createElement('button');aEd.className='act';aEd.title='編輯';aEd.textContent='✎';
+  aEd.onclick=e=>{e.stopPropagation();if(editingId===id){editingId=null;}else{editingId=id;addingChildOf=null;n.open=true;}render();};
+  const aDel=document.createElement('button');aDel.className='act red';aDel.title='刪除';aDel.textContent='✕';
+  aDel.onclick=e=>{e.stopPropagation();delNode(id);};
+  acts.appendChild(aAdd);acts.appendChild(aEd);acts.appendChild(aDel);
+  row.appendChild(acts);
+  wrap.appendChild(row);
+  return wrap;
+}
+
+function tagOpts(sel){
+  return ['事件','NPC','地點','物品','任務','秘密'].map(t=>`<option value="${t}"${t===sel?' selected':''}>${t}</option>`).join('');
+}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function buildEditForm(n){
+  const ef=document.createElement('div');ef.className='edit-form';ef.onclick=e=>e.stopPropagation();
+  const swId='ef-sw-'+n.id;
+  ef.innerHTML=`
+    <div class="form-row">
+      <div class="form-group"><div class="form-label">標題</div><input class="inp" id="ef-t-${n.id}" value="${esc(n.title)}" placeholder="節點標題"></div>
+      <div class="form-group" style="flex:0;min-width:90px"><div class="form-label">類型</div><select class="sel" id="ef-tag-${n.id}">${tagOpts(n.tag)}</select></div>
+    </div>
+    <div class="form-group"><div class="form-label">筆記內容</div><textarea class="inp" id="ef-n-${n.id}" placeholder="詳細記錄...">${esc(n.note)}</textarea></div>
+    <div><div class="form-label">節點顏色</div><div class="swatches" id="${swId}"></div></div>
+    <div class="form-btns">
+      <button class="btn pri sm" id="ef-sv-${n.id}">儲存</button>
+      <button class="btn ghost sm" onclick="editingId=null;render()">取消</button>
+    </div>`;
+  setTimeout(()=>{
+    let ci=n.ci;
+    function rb(i){ci=i;buildSw(swId,i,rb);}
+    buildSw(swId,ci,rb);
+    const sv=document.getElementById('ef-sv-'+n.id);
+    if(sv)sv.onclick=e=>{
+      e.stopPropagation();
+      n.title=document.getElementById('ef-t-'+n.id).value||n.title;
+      n.note=document.getElementById('ef-n-'+n.id).value;
+      n.tag=document.getElementById('ef-tag-'+n.id).value;
+      n.ci=ci;editingId=null;save();render();
+    };
+  },0);
+  return ef;
+}
+
+function buildChildForm(pid){
+  const cf=document.createElement('div');cf.className='child-form';cf.onclick=e=>e.stopPropagation();
+  const swId='cf-sw-'+pid;
+  cf.innerHTML=`
+    <div class="form-row">
+      <div class="form-group"><div class="form-label">子節點標題</div><input class="inp" id="cf-t-${pid}" placeholder="輸入子事件..."></div>
+      <div class="form-group" style="flex:0;min-width:90px"><div class="form-label">類型</div><select class="sel" id="cf-tag-${pid}">${tagOpts('事件')}</select></div>
+    </div>
+    <div class="form-group"><div class="form-label">筆記（可選）</div><textarea class="inp" id="cf-n-${pid}" placeholder="詳細記錄..."></textarea></div>
+    <div><div class="form-label">節點顏色</div><div class="swatches" id="${swId}"></div></div>
+    <div class="form-btns">
+      <button class="btn pri sm" id="cf-add-${pid}">新增子節點</button>
+      <button class="btn ghost sm" onclick="addingChildOf=null;render()">取消</button>
+    </div>`;
+  setTimeout(()=>{
+    let ci=nodes[pid].ci;
+    function rb(i){ci=i;buildSw(swId,i,rb);}
+    buildSw(swId,ci,rb);
+    const ab=document.getElementById('cf-add-'+pid);
+    if(ab)ab.onclick=e=>{
+      e.stopPropagation();
+      const t=document.getElementById('cf-t-'+pid).value.trim();if(!t)return;
+      const note=document.getElementById('cf-n-'+pid).value;
+      const tag=document.getElementById('cf-tag-'+pid).value;
+      const nid=mk(t,note,tag,pid,ci);
+      nodes[pid].children.push(nid);nodes[pid].expanded=true;
+      addingChildOf=null;save();render();
+    };
+    const ti=document.getElementById('cf-t-'+pid);
+    if(ti)ti.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('cf-add-'+pid)?.click();});
+  },0);
+  return cf;
+}
+
+document.getElementById('root-inp').addEventListener('keydown',e=>{if(e.key==='Enter')addRoot();});
+load();initRootSw();render();
+</script>
+</body>
+</html>
