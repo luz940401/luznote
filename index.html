@@ -307,10 +307,11 @@ async function doCloudSave() {
   if (!gsUrl) return;
   try {
     const value = JSON.stringify({ nodes, rootIds, nextId });
+    const params = new URLSearchParams();
+    params.append('value', value);
     const res = await fetch(gsUrl, {
       method: 'POST',
-      body: JSON.stringify({ value }),
-      headers: { 'Content-Type': 'application/json' }
+      body: params
     });
     const json = await res.json();
     if (json.ok) {
