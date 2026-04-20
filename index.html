@@ -7,34 +7,39 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans TC',sans-serif;background:#f7f5f2;color:#1a1a1a;min-height:100vh}
+body{font-family:'Noto Sans TC',sans-serif;background:#f0ede8;color:#1a1a1a;min-height:100vh}
 
+/* ── Header ── */
 header{
-  background:#fff;border-bottom:1px solid #e8e3dc;
-  padding:14px 20px;display:flex;align-items:center;gap:10px;
-  position:sticky;top:0;z-index:100;
+  background:#fff;border-bottom:2px solid #e0dbd2;
+  padding:12px 20px;display:flex;align-items:center;gap:8px;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.06);
 }
-.logo{font-family:'Noto Serif TC',serif;font-size:16px;font-weight:500;color:#1a1a1a;flex:1;letter-spacing:.04em}
-.logo em{font-style:normal;color:#999;font-family:'Noto Sans TC',sans-serif;font-size:12px;font-weight:300;margin-left:8px}
-.hbtn{padding:6px 12px;font-size:12px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;cursor:pointer;transition:all .15s;font-family:'Noto Sans TC',sans-serif}
+.logo{font-family:'Noto Serif TC',serif;font-size:17px;font-weight:500;color:#1a1a1a;flex:1;letter-spacing:.04em}
+.logo em{font-style:normal;color:#aaa;font-family:'Noto Sans TC',sans-serif;font-size:11px;font-weight:300;margin-left:8px}
+.header-divider{width:1px;height:20px;background:#e8e3dc;margin:0 4px}
+.hbtn{padding:6px 13px;font-size:12px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;cursor:pointer;transition:all .15s;font-family:'Noto Sans TC',sans-serif;white-space:nowrap}
 .hbtn:hover{border-color:#bbb;color:#222;background:#fafafa}
 .hbtn.red:hover{border-color:#e0a0a0;color:#c04040;background:#fff5f5}
+.hbtn.accent{border-color:#c0b8a8;color:#5a5040;background:#faf8f4}
+.hbtn.accent:hover{border-color:#a09080;background:#f5f0e8}
 
-main{max-width:680px;margin:0 auto;padding:24px 16px 80px}
+main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 
-.add-box{background:#fff;border:1px solid #e8e3dc;border-radius:10px;padding:16px;margin-bottom:24px}
-.add-box-title{font-size:11px;font-weight:500;color:#aaa;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+/* ── Add box ── */
+.add-box{background:#fff;border:1px solid #e0dbd2;border-radius:12px;padding:18px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.add-box-title{font-size:11px;font-weight:500;color:#aaa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
 .add-row{display:flex;gap:8px;flex-wrap:wrap}
-.inp{background:#f7f5f2;border:1px solid #e0dbd4;border-radius:6px;color:#1a1a1a;font-family:'Noto Sans TC',sans-serif;font-size:14px;padding:8px 12px;outline:none;transition:border .15s}
-.inp:focus{border-color:#aaa;background:#fff}
-.inp::placeholder{color:#bbb}
-.sel{background:#f7f5f2;border:1px solid #e0dbd4;border-radius:6px;color:#555;font-family:'Noto Sans TC',sans-serif;font-size:13px;padding:8px 10px;outline:none;cursor:pointer}
-.sel:focus{border-color:#aaa}
+.inp{background:#f7f5f2;border:1px solid #e0dbd4;border-radius:7px;color:#1a1a1a;font-family:'Noto Sans TC',sans-serif;font-size:14px;padding:9px 12px;outline:none;transition:border .15s,background .15s}
+.inp:focus{border-color:#a09070;background:#fff}
+.inp::placeholder{color:#c0bbb0}
+.sel{background:#f7f5f2;border:1px solid #e0dbd4;border-radius:7px;color:#555;font-family:'Noto Sans TC',sans-serif;font-size:13px;padding:9px 10px;outline:none;cursor:pointer}
+.sel:focus{border-color:#a09070}
 .swatches{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 0}
 .swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;flex-shrink:0}
 .swatch:hover{transform:scale(1.15)}
 .swatch.on{border-color:#1a1a1a !important}
-.btn{padding:8px 18px;font-size:13px;font-family:'Noto Sans TC',sans-serif;border:1px solid #ddd;border-radius:6px;background:#fff;color:#333;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn{padding:8px 18px;font-size:13px;font-family:'Noto Sans TC',sans-serif;border:1px solid #ddd;border-radius:7px;background:#fff;color:#333;cursor:pointer;transition:all .15s;white-space:nowrap}
 .btn:hover{background:#f5f5f5;border-color:#ccc}
 .btn.pri{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
 .btn.pri:hover{background:#333}
@@ -42,71 +47,97 @@ main{max-width:680px;margin:0 auto;padding:24px 16px 80px}
 .btn.ghost{background:transparent;color:#888;border-color:#e5e5e5}
 .btn.ghost:hover{color:#333;border-color:#ccc;background:#fafafa}
 
-.stats{font-size:12px;color:#bbb;margin-bottom:14px;display:flex;gap:12px}
+/* ── Stats bar ── */
+.stats-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:0 2px}
+.stat-item{font-size:12px;color:#999;background:#fff;border:1px solid #e8e3dc;border-radius:20px;padding:3px 12px}
+.stat-item strong{color:#666;font-weight:500}
 
-.tree{display:flex;flex-direction:column;gap:6px}
+/* ── Tree ── */
+.tree{display:flex;flex-direction:column;gap:10px}
 .node-wrap{position:relative}
 .node-row{display:flex;align-items:flex-start;gap:6px}
 
-/* connector */
-.conn{width:22px;flex-shrink:0;position:relative;align-self:stretch;padding-top:20px}
-.conn::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:1px;background:#e5e0d8}
-.conn::after{content:'';position:absolute;left:10px;top:20px;width:12px;height:1px;background:#e5e0d8}
+/* connector lines for children */
+.conn{width:24px;flex-shrink:0;position:relative;align-self:stretch;padding-top:22px}
+.conn::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:1px;background:#d8d0c5}
+.conn::after{content:'';position:absolute;left:10px;top:22px;width:14px;height:1px;background:#d8d0c5}
 
 .node-main{flex:1;min-width:0}
 
-/* card */
-.card{background:#fff;border:1px solid #e8e3dc;border-radius:10px;overflow:hidden;transition:border-color .2s}
-.card:hover{border-color:#d0c8be}
+/* ── Card ── */
+.card{background:#fff;border:1px solid #e0dbd2;border-radius:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.card:hover{border-color:#c8c0b0;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 
-.card-head{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;user-select:none}
-.chevron{font-size:9px;color:#ccc;flex-shrink:0;transition:transform .2s;line-height:1}
+/* Root cards have a stronger accent bar */
+.card.root-card{border-width:1px}
+.card.root-card::before{display:none} /* handled via border-left below */
+
+.card-head{display:flex;align-items:center;gap:9px;padding:12px 14px;cursor:pointer;user-select:none}
+.chevron{font-size:10px;color:#bbb;flex-shrink:0;transition:transform .25s;line-height:1}
 .chevron.open{transform:rotate(90deg)}
-.color-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.tag-pill{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;letter-spacing:.04em;flex-shrink:0}
-.card-title{font-size:14px;font-weight:500;flex:1;line-height:1.4;word-break:break-all}
-.card-date{font-size:11px;color:#ccc;flex-shrink:0}
+.color-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.tag-pill{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;letter-spacing:.04em;flex-shrink:0}
+.card-title{font-size:15px;font-weight:600;flex:1;line-height:1.4;word-break:break-all;color:#111;letter-spacing:.01em}
+.card-date{font-size:11px;color:#bbb;flex-shrink:0}
 
-/* body */
-.card-body{border-top:1px solid #f0ebe4;padding:10px 14px 12px;display:none}
+/* Root node title is slightly larger */
+.root-card .card-title{font-size:16px;font-weight:700}
+
+/* Expand toggle for root nodes (sub-tree collapse) */
+.tree-toggle{font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid #e0dbd2;background:#f7f5f0;color:#999;cursor:pointer;transition:all .15s;white-space:nowrap;margin-left:2px;flex-shrink:0}
+.tree-toggle:hover{border-color:#c0b8a8;color:#666;background:#f0ece4}
+.tree-toggle.collapsed{color:#7a6a50;border-color:#c8bca8;background:#faf5ec}
+
+/* card body */
+.card-body{border-top:1px solid #ede8e0;padding:10px 14px 13px;display:none}
 .card-body.open{display:block}
-.card-note{font-size:13px;color:#555;line-height:1.7;white-space:pre-wrap;word-break:break-word;font-family:'Noto Serif TC',serif;font-weight:300}
+.card-note{font-size:14px;color:#2a2a2a;line-height:1.9;white-space:pre-wrap;word-break:break-word;font-family:'Noto Sans TC',sans-serif;font-weight:400}
 
 /* edit form */
 .edit-form{padding:2px 0 0;display:flex;flex-direction:column;gap:8px}
 .form-label{font-size:11px;color:#aaa;font-weight:500;letter-spacing:.06em;margin-bottom:3px}
 .form-row{display:flex;gap:8px;flex-wrap:wrap}
 .form-group{display:flex;flex-direction:column;flex:1;min-width:110px}
-.edit-form textarea{min-height:72px;resize:vertical;line-height:1.6}
+.edit-form textarea{min-height:80px;resize:vertical;line-height:1.6}
 .form-btns{display:flex;gap:6px}
 
 /* child form */
-.child-form{background:#fff;border:1px solid #e8e3dc;border-radius:10px;padding:12px 14px;margin-top:5px;display:flex;flex-direction:column;gap:8px}
+.child-form{background:#faf8f4;border:1px solid #e0dbd2;border-radius:10px;padding:13px 14px;margin-top:6px;display:flex;flex-direction:column;gap:8px}
 
-.children{padding-left:22px;margin-top:5px;display:flex;flex-direction:column;gap:5px}
+/* children container */
+.children{padding-left:24px;margin-top:6px;display:flex;flex-direction:column;gap:6px}
 
 /* node actions */
 .node-actions{display:flex;flex-direction:column;gap:3px;padding-top:4px}
-.act{width:26px;height:26px;border-radius:5px;border:1px solid #ece8e2;background:#fff;color:#bbb;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
-.act:hover{border-color:#ccc;color:#555;background:#f7f5f2}
+.act{width:28px;height:28px;border-radius:6px;border:1px solid #ece8e0;background:#fff;color:#bbb;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.act:hover{border-color:#ccc;color:#555;background:#f7f5f0}
 .act.red:hover{border-color:#f0b0b0;color:#c04040;background:#fff5f5}
-.act.add:hover{border-color:#b0d0b0;color:#3a8a3a;background:#f5fff5}
+.act.add:hover{border-color:#aad4aa;color:#3a8a3a;background:#f3fbf3}
 
-.empty{text-align:center;padding:48px 20px;color:#ccc;border:1px dashed #e5e0d8;border-radius:10px}
-.empty strong{display:block;font-size:15px;color:#bbb;font-family:'Noto Serif TC',serif;margin-bottom:6px;font-weight:400}
+/* Empty state */
+.empty{text-align:center;padding:56px 20px;color:#ccc;border:1px dashed #e0dbd0;border-radius:12px;background:#faf8f5}
+.empty strong{display:block;font-size:16px;color:#bbb;font-family:'Noto Serif TC',serif;margin-bottom:8px;font-weight:400}
 
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center;padding:20px}
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center;padding:20px}
 .modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:12px;padding:22px;width:100%;max-width:360px;border:1px solid #e8e3dc}
-.modal h3{font-family:'Noto Serif TC',serif;font-size:16px;font-weight:400;margin-bottom:10px}
-.modal p{font-size:13px;color:#777;line-height:1.7;margin-bottom:16px}
+.modal{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:360px;border:1px solid #e8e3dc;box-shadow:0 8px 32px rgba(0,0,0,.12)}
+.modal h3{font-family:'Noto Serif TC',serif;font-size:17px;font-weight:400;margin-bottom:10px}
+.modal p{font-size:13px;color:#777;line-height:1.7;margin-bottom:18px}
 .modal-btns{display:flex;gap:8px;justify-content:flex-end}
+
+/* Subtle animation for children appearing */
+.children{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">冒險記錄 <em>DND 心智圖筆記</em></div>
+  <button class="hbtn accent" onclick="expandAll()">全開</button>
+  <button class="hbtn accent" onclick="collapseAll()">全收</button>
+  <div class="header-divider"></div>
   <button class="hbtn" onclick="exportData()">匯出</button>
   <button class="hbtn" onclick="document.getElementById('imp').click()">匯入</button>
   <button class="hbtn red" onclick="document.getElementById('clr-modal').classList.add('open')">清除</button>
@@ -131,9 +162,9 @@ main{max-width:680px;margin:0 auto;padding:24px 16px 80px}
     <div class="swatches" id="root-sw"></div>
   </div>
 
-  <div class="stats">
-    <span id="s-count"></span>
-    <span id="s-roots"></span>
+  <div class="stats-bar">
+    <span class="stat-item"><strong id="s-count">0</strong> 則筆記</span>
+    <span class="stat-item"><strong id="s-roots">0</strong> 條主線</span>
   </div>
 
   <div class="tree" id="tree"></div>
@@ -152,23 +183,23 @@ main{max-width:680px;margin:0 auto;padding:24px 16px 80px}
 
 <script>
 const PALETTE=[
-  {name:'石板灰', bg:'#f5f5f5', border:'#d0d0d0', dot:'#888'},
-  {name:'珊瑚紅', bg:'#fff5f5', border:'#f5c0c0', dot:'#d05050'},
-  {name:'薰衣紫', bg:'#f8f5ff', border:'#d8c8f8', dot:'#7a5abf'},
-  {name:'蒼翠綠', bg:'#f3fbf5', border:'#b8e8c4', dot:'#3a8a5a'},
-  {name:'天空藍', bg:'#f3f8ff', border:'#b8d8f8', dot:'#3a70c0'},
-  {name:'琥珀黃', bg:'#fffbf0', border:'#f0dca8', dot:'#c08020'},
-  {name:'玫瑰粉', bg:'#fff5f8', border:'#f5c8d8', dot:'#c05080'},
-  {name:'墨色',   bg:'#f5f5f3', border:'#c8c5be', dot:'#3a3830'},
+  {name:'石板灰', bg:'#f5f5f5', border:'#d0d0d0', dot:'#888', accent:'#c0c0c0'},
+  {name:'珊瑚紅', bg:'#fff5f5', border:'#f5c0c0', dot:'#d05050', accent:'#e08080'},
+  {name:'薰衣紫', bg:'#f8f5ff', border:'#d8c8f8', dot:'#7a5abf', accent:'#b090e0'},
+  {name:'蒼翠綠', bg:'#f3fbf5', border:'#b8e8c4', dot:'#3a8a5a', accent:'#70c090'},
+  {name:'天空藍', bg:'#f3f8ff', border:'#b8d8f8', dot:'#3a70c0', accent:'#70a0e0'},
+  {name:'琥珀黃', bg:'#fffbf0', border:'#f0dca8', dot:'#c08020', accent:'#e0b050'},
+  {name:'玫瑰粉', bg:'#fff5f8', border:'#f5c8d8', dot:'#c05080', accent:'#e090b0'},
+  {name:'墨色',   bg:'#f5f5f3', border:'#c8c5be', dot:'#3a3830', accent:'#808070'},
 ];
 
 const TAG_STYLE={
-  '事件':{bg:'rgba(220,140,60,.1)',  color:'#a05010'},
-  'NPC' :{bg:'rgba(100,80,200,.1)',  color:'#4030a0'},
-  '地點':{bg:'rgba(40,140,100,.1)',  color:'#1a7858'},
-  '物品':{bg:'rgba(180,140,30,.1)',  color:'#907010'},
-  '任務':{bg:'rgba(50,120,220,.1)',  color:'#2050a0'},
-  '秘密':{bg:'rgba(150,60,150,.1)',  color:'#7a2a7a'},
+  '事件':{bg:'rgba(220,140,60,.12)',  color:'#a05010'},
+  'NPC' :{bg:'rgba(100,80,200,.12)',  color:'#4030a0'},
+  '地點':{bg:'rgba(40,140,100,.12)',  color:'#1a7858'},
+  '物品':{bg:'rgba(180,140,30,.12)',  color:'#907010'},
+  '任務':{bg:'rgba(50,120,220,.12)',  color:'#2050a0'},
+  '秘密':{bg:'rgba(150,60,150,.12)',  color:'#7a2a7a'},
 };
 
 let nodes={},rootIds=[],nextId=1,editingId=null,addingChildOf=null;
@@ -183,6 +214,7 @@ function load(){
         if(n.ci===undefined)n.ci=0;
         if(n.open===undefined)n.open=false;
         if(n.expanded===undefined)n.expanded=true;
+        if(n.treeOpen===undefined)n.treeOpen=true; // NEW: controls sub-tree collapse
       });
     } else seed();
   }catch(e){seed();}
@@ -192,7 +224,7 @@ function uid(){return 'n'+(nextId++);}
 function mk(title,note,tag,parentId,ci){
   const id=uid();
   nodes[id]={id,title,note:note||'',tag:tag||'事件',parentId:parentId||null,
-    children:[],expanded:true,open:false,ci:ci!==undefined?ci:0,
+    children:[],expanded:true,open:false,treeOpen:true,ci:ci!==undefined?ci:0,
     created:new Date().toLocaleDateString('zh-TW')};
   return id;
 }
@@ -250,6 +282,16 @@ function clearAll(){
   nodes={};rootIds=[];nextId=1;editingId=null;addingChildOf=null;
   save();document.getElementById('clr-modal').classList.remove('open');render();
 }
+
+function expandAll(){
+  rootIds.forEach(id=>{ nodes[id].treeOpen=true; });
+  save();render();
+}
+function collapseAll(){
+  rootIds.forEach(id=>{ nodes[id].treeOpen=false; });
+  save();render();
+}
+
 function exportData(){
   const b=new Blob([JSON.stringify({nodes,rootIds,nextId},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);
@@ -266,6 +308,7 @@ function importData(e){
         if(n.ci===undefined)n.ci=0;
         if(n.open===undefined)n.open=false;
         if(n.expanded===undefined)n.expanded=true;
+        if(n.treeOpen===undefined)n.treeOpen=true;
       });
       save();render();
     }catch{alert('匯入失敗：格式不正確');}
@@ -275,8 +318,8 @@ function importData(e){
 
 function render(){
   const cnt=Object.keys(nodes).length;
-  document.getElementById('s-count').textContent=cnt+' 則筆記';
-  document.getElementById('s-roots').textContent=rootIds.length+' 條主線';
+  document.getElementById('s-count').textContent=cnt;
+  document.getElementById('s-roots').textContent=rootIds.length;
   const tree=document.getElementById('tree');
   tree.innerHTML='';
   if(rootIds.length===0){
@@ -290,6 +333,7 @@ function rNode(id,depth){
   const n=nodes[id];
   const pal=PALETTE[n.ci]||PALETTE[0];
   const ts=TAG_STYLE[n.tag]||{bg:'#f0f0f0',color:'#666'};
+  const isRoot=depth===0;
 
   const wrap=document.createElement('div');wrap.className='node-wrap';
   const row=document.createElement('div');row.className='node-row';
@@ -301,18 +345,24 @@ function rNode(id,depth){
   const main=document.createElement('div');main.className='node-main';
 
   // card
-  const card=document.createElement('div');card.className='card';
+  const card=document.createElement('div');
+  card.className='card'+(isRoot?' root-card':'');
   card.style.borderColor=pal.border;
   card.style.background=pal.bg;
+  if(isRoot){
+    card.style.borderLeftWidth='4px';
+    card.style.borderLeftColor=pal.accent||pal.dot;
+  }
 
   // head
   const head=document.createElement('div');head.className='card-head';
   const hasContent=n.note||editingId===id;
   head.onclick=e=>{
-    if(e.target.closest('.act,.edit-form,.child-form,.btn,.swatch'))return;
+    if(e.target.closest('.act,.edit-form,.child-form,.btn,.swatch,.tree-toggle'))return;
     if(hasContent||editingId===id){n.open=!n.open;save();render();}
   };
 
+  // chevron for note expand
   const chev=document.createElement('span');
   chev.className='chevron'+(n.open||editingId===id?' open':'');
   chev.textContent='▶';
@@ -332,12 +382,26 @@ function rNode(id,depth){
   const dateEl=document.createElement('span');dateEl.className='card-date';dateEl.textContent=n.created;
   head.appendChild(dateEl);
 
+  // Sub-tree toggle button (only for root nodes with children)
+  if(isRoot && n.children.length>0){
+    const tog=document.createElement('button');
+    tog.className='tree-toggle'+(n.treeOpen?'':' collapsed');
+    const childCount=countDescendants(id);
+    tog.textContent=n.treeOpen?`▲ 收起 (${childCount})`:` ▼ 展開 (${childCount})`;
+    tog.title=n.treeOpen?'收起子事件':'展開子事件';
+    tog.onclick=e=>{
+      e.stopPropagation();
+      n.treeOpen=!n.treeOpen;
+      save();render();
+    };
+    head.appendChild(tog);
+  }
+
   card.appendChild(head);
 
-  // body
+  // body (note / edit form)
   const body=document.createElement('div');
   body.className='card-body'+((n.open||editingId===id)?' open':'');
-
   if(editingId===id){
     body.appendChild(buildEditForm(n));
   } else if(n.note){
@@ -350,8 +414,8 @@ function rNode(id,depth){
   // child add form
   if(addingChildOf===id)main.appendChild(buildChildForm(id));
 
-  // children
-  if(n.expanded&&n.children.length>0){
+  const showChildren = n.children.length > 0 && (isRoot ? n.treeOpen : n.expanded);
+  if(showChildren){
     const ch=document.createElement('div');ch.className='children';
     n.children.forEach(cid=>ch.appendChild(rNode(cid,depth+1)));
     main.appendChild(ch);
@@ -362,15 +426,35 @@ function rNode(id,depth){
   // actions
   const acts=document.createElement('div');acts.className='node-actions';
   const aAdd=document.createElement('button');aAdd.className='act add';aAdd.title='新增子節點';aAdd.textContent='＋';
-  aAdd.onclick=e=>{e.stopPropagation();addingChildOf=(addingChildOf===id?null:id);editingId=null;nodes[id].expanded=true;render();setTimeout(()=>{const el=document.getElementById('cf-t-'+id);if(el)el.focus();},50);};
+  aAdd.onclick=e=>{
+    e.stopPropagation();
+    addingChildOf=(addingChildOf===id?null:id);
+    editingId=null;
+    nodes[id].expanded=true;
+    if(isRoot) nodes[id].treeOpen=true;
+    render();
+    setTimeout(()=>{const el=document.getElementById('cf-t-'+id);if(el)el.focus();},50);
+  };
   const aEd=document.createElement('button');aEd.className='act';aEd.title='編輯';aEd.textContent='✎';
-  aEd.onclick=e=>{e.stopPropagation();if(editingId===id){editingId=null;}else{editingId=id;addingChildOf=null;n.open=true;}render();};
+  aEd.onclick=e=>{
+    e.stopPropagation();
+    if(editingId===id){editingId=null;}
+    else{editingId=id;addingChildOf=null;n.open=true;}
+    render();
+  };
   const aDel=document.createElement('button');aDel.className='act red';aDel.title='刪除';aDel.textContent='✕';
   aDel.onclick=e=>{e.stopPropagation();delNode(id);};
   acts.appendChild(aAdd);acts.appendChild(aEd);acts.appendChild(aDel);
   row.appendChild(acts);
   wrap.appendChild(row);
   return wrap;
+}
+
+function countDescendants(id){
+  let count=0;
+  function walk(nid){nodes[nid].children.forEach(c=>{count++;walk(c);});}
+  walk(id);
+  return count;
 }
 
 function tagOpts(sel){
