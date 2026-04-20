@@ -24,6 +24,25 @@ header{
 .hbtn.accent{border-color:#c0b8a8;color:#5a5040;background:#faf8f4}
 .hbtn.accent:hover{border-color:#a09080;background:#f5f0e8}
 
+/* ── 雲端狀態指示器 ── */
+.sync-status{
+  display:flex;align-items:center;gap:5px;
+  font-size:11px;padding:4px 10px;border-radius:20px;
+  border:1px solid #e0dbd2;background:#faf8f4;
+  color:#999;white-space:nowrap;cursor:default;
+  transition:all .3s;
+}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0;transition:background .3s}
+.sync-status.ok .sync-dot{background:#4a9a6a}
+.sync-status.ok{color:#3a7a5a;border-color:#b8e0c8;background:#f3fbf5}
+.sync-status.saving .sync-dot{background:#e0a040;animation:pulse .8s infinite}
+.sync-status.saving{color:#a07020;border-color:#e8d4a0;background:#fffbf0}
+.sync-status.err .sync-dot{background:#d05050}
+.sync-status.err{color:#a03030;border-color:#f0c0c0;background:#fff5f5}
+.sync-status.no-url{cursor:pointer}
+.sync-status.no-url:hover{border-color:#a09080;background:#f0ece4}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
 main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 
 /* ── Add box ── */
@@ -56,22 +75,16 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 .tree{display:flex;flex-direction:column;gap:10px}
 .node-wrap{position:relative}
 .node-row{display:flex;align-items:flex-start;gap:6px}
-
-/* connector lines for children */
 .conn{width:24px;flex-shrink:0;position:relative;align-self:stretch;padding-top:22px}
 .conn::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:1px;background:#d8d0c5}
 .conn::after{content:'';position:absolute;left:10px;top:22px;width:14px;height:1px;background:#d8d0c5}
-
 .node-main{flex:1;min-width:0}
 
 /* ── Card ── */
 .card{background:#fff;border:1px solid #e0dbd2;border-radius:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
 .card:hover{border-color:#c8c0b0;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-
-/* Root cards have a stronger accent bar */
 .card.root-card{border-width:1px}
-.card.root-card::before{display:none} /* handled via border-left below */
-
+.card.root-card::before{display:none}
 .card-head{display:flex;align-items:center;gap:9px;padding:12px 14px;cursor:pointer;user-select:none}
 .chevron{font-size:10px;color:#bbb;flex-shrink:0;transition:transform .25s;line-height:1}
 .chevron.open{transform:rotate(90deg)}
@@ -79,54 +92,44 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 .tag-pill{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;letter-spacing:.04em;flex-shrink:0}
 .card-title{font-size:15px;font-weight:600;flex:1;line-height:1.4;word-break:break-all;color:#111;letter-spacing:.01em}
 .card-date{font-size:11px;color:#bbb;flex-shrink:0}
-
-/* Root node title is slightly larger */
 .root-card .card-title{font-size:16px;font-weight:700}
-
-/* Expand toggle for root nodes (sub-tree collapse) */
 .tree-toggle{font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid #e0dbd2;background:#f7f5f0;color:#999;cursor:pointer;transition:all .15s;white-space:nowrap;margin-left:2px;flex-shrink:0}
 .tree-toggle:hover{border-color:#c0b8a8;color:#666;background:#f0ece4}
 .tree-toggle.collapsed{color:#7a6a50;border-color:#c8bca8;background:#faf5ec}
-
-/* card body */
 .card-body{border-top:1px solid #ede8e0;padding:10px 14px 13px;display:none}
 .card-body.open{display:block}
 .card-note{font-size:14px;color:#2a2a2a;line-height:1.9;white-space:pre-wrap;word-break:break-word;font-family:'Noto Sans TC',sans-serif;font-weight:400}
-
-/* edit form */
 .edit-form{padding:2px 0 0;display:flex;flex-direction:column;gap:8px}
 .form-label{font-size:11px;color:#aaa;font-weight:500;letter-spacing:.06em;margin-bottom:3px}
 .form-row{display:flex;gap:8px;flex-wrap:wrap}
 .form-group{display:flex;flex-direction:column;flex:1;min-width:110px}
 .edit-form textarea{min-height:80px;resize:vertical;line-height:1.6}
 .form-btns{display:flex;gap:6px}
-
-/* child form */
 .child-form{background:#faf8f4;border:1px solid #e0dbd2;border-radius:10px;padding:13px 14px;margin-top:6px;display:flex;flex-direction:column;gap:8px}
-
-/* children container */
 .children{padding-left:24px;margin-top:6px;display:flex;flex-direction:column;gap:6px}
-
-/* node actions */
 .node-actions{display:flex;flex-direction:column;gap:3px;padding-top:4px}
 .act{width:28px;height:28px;border-radius:6px;border:1px solid #ece8e0;background:#fff;color:#bbb;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
 .act:hover{border-color:#ccc;color:#555;background:#f7f5f0}
 .act.red:hover{border-color:#f0b0b0;color:#c04040;background:#fff5f5}
 .act.add:hover{border-color:#aad4aa;color:#3a8a3a;background:#f3fbf3}
-
-/* Empty state */
 .empty{text-align:center;padding:56px 20px;color:#ccc;border:1px dashed #e0dbd0;border-radius:12px;background:#faf8f5}
 .empty strong{display:block;font-size:16px;color:#bbb;font-family:'Noto Serif TC',serif;margin-bottom:8px;font-weight:400}
 
-/* Modal */
+/* ── Modal ── */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center;padding:20px}
 .modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:360px;border:1px solid #e8e3dc;box-shadow:0 8px 32px rgba(0,0,0,.12)}
+.modal{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:400px;border:1px solid #e8e3dc;box-shadow:0 8px 32px rgba(0,0,0,.12)}
 .modal h3{font-family:'Noto Serif TC',serif;font-size:17px;font-weight:400;margin-bottom:10px}
-.modal p{font-size:13px;color:#777;line-height:1.7;margin-bottom:18px}
+.modal p{font-size:13px;color:#777;line-height:1.7;margin-bottom:12px}
 .modal-btns{display:flex;gap:8px;justify-content:flex-end}
+.modal code{background:#f5f3ef;border:1px solid #e0dbd2;border-radius:5px;padding:2px 7px;font-size:12px;color:#5a4a30;font-family:monospace}
+.url-input-wrap{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.url-input-wrap input{font-size:12px;padding:8px 10px;border:1px solid #e0dbd2;border-radius:7px;outline:none;font-family:monospace;color:#333}
+.url-input-wrap input:focus{border-color:#a09070}
+.modal ol{padding-left:18px;margin:8px 0 14px;color:#666;font-size:12px;line-height:2}
+.modal ol li{margin-bottom:2px}
 
-/* Subtle animation for children appearing */
+/* Subtle animation */
 .children{animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 </style>
@@ -135,6 +138,10 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 
 <header>
   <div class="logo">冒險記錄 <em>DND 心智圖筆記</em></div>
+  <div class="sync-status no-url" id="sync-status" onclick="openUrlModal()" title="點擊設定雲端連結">
+    <div class="sync-dot"></div>
+    <span id="sync-text">未連結雲端</span>
+  </div>
   <button class="hbtn accent" onclick="expandAll()">全開</button>
   <button class="hbtn accent" onclick="collapseAll()">全收</button>
   <div class="header-divider"></div>
@@ -165,11 +172,13 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
   <div class="stats-bar">
     <span class="stat-item"><strong id="s-count">0</strong> 則筆記</span>
     <span class="stat-item"><strong id="s-roots">0</strong> 條主線</span>
+    <span class="stat-item" id="s-sync-time" style="display:none">上次同步 <strong id="s-sync-label">—</strong></span>
   </div>
 
   <div class="tree" id="tree"></div>
 </main>
 
+<!-- 清除確認 Modal -->
 <div class="modal-bg" id="clr-modal">
   <div class="modal">
     <h3>清除所有資料？</h3>
@@ -181,7 +190,35 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
   </div>
 </div>
 
+<!-- 設定雲端 URL Modal -->
+<div class="modal-bg" id="url-modal">
+  <div class="modal">
+    <h3>☁️ 設定 Google Sheets 雲端</h3>
+    <p>請先完成以下步驟：</p>
+    <ol>
+      <li>開啟 <strong>Google Apps Script</strong>（script.google.com）</li>
+      <li>建立新專案，貼上 <code>Code.gs</code> 的內容</li>
+      <li>點選上方「部署 &gt; 新增部署」</li>
+      <li>類型選「<strong>網頁應用程式</strong>」</li>
+      <li>執行身分：「<strong>我</strong>」，存取權：「<strong>所有人</strong>」</li>
+      <li>複製部署後的 <strong>Web 應用程式網址</strong>，貼到下方</li>
+    </ol>
+    <div class="url-input-wrap">
+      <label style="font-size:11px;color:#aaa;font-weight:500;letter-spacing:.06em">Web 應用程式網址</label>
+      <input type="url" id="gs-url-inp" placeholder="https://script.google.com/macros/s/...">
+    </div>
+    <div class="modal-btns">
+      <button class="btn ghost" onclick="document.getElementById('url-modal').classList.remove('open')">取消</button>
+      <button class="btn" style="border-color:#b0c8e0;color:#2050a0;background:#f3f8ff" onclick="clearGsUrl()">清除連結</button>
+      <button class="btn pri" onclick="saveGsUrl()">儲存並連線</button>
+    </div>
+  </div>
+</div>
+
 <script>
+// ─────────────────────────────────────────────
+//  資料結構
+// ─────────────────────────────────────────────
 const PALETTE=[
   {name:'石板灰', bg:'#f5f5f5', border:'#d0d0d0', dot:'#888', accent:'#c0c0c0'},
   {name:'珊瑚紅', bg:'#fff5f5', border:'#f5c0c0', dot:'#d05050', accent:'#e08080'},
@@ -204,6 +241,139 @@ const TAG_STYLE={
 
 let nodes={},rootIds=[],nextId=1,editingId=null,addingChildOf=null;
 
+// ─────────────────────────────────────────────
+//  雲端同步（Google Apps Script）
+// ─────────────────────────────────────────────
+const GS_URL_KEY = 'dnd-gs-url';
+let gsUrl = localStorage.getItem(GS_URL_KEY) || '';
+let syncTimer = null;
+let lastSyncTime = null;
+
+function setSyncStatus(state, text) {
+  const el = document.getElementById('sync-status');
+  const tx = document.getElementById('sync-text');
+  el.className = 'sync-status ' + state;
+  if (!gsUrl) {
+    el.classList.add('no-url');
+    el.onclick = openUrlModal;
+  } else {
+    el.onclick = openUrlModal;
+  }
+  tx.textContent = text;
+}
+
+async function cloudLoad() {
+  if (!gsUrl) return false;
+  setSyncStatus('saving', '載入中…');
+  try {
+    const res = await fetch(gsUrl, { method: 'GET' });
+    const json = await res.json();
+    if (json.ok && json.data) {
+      const d = JSON.parse(json.data);
+      nodes = d.nodes || {};
+      rootIds = d.rootIds || [];
+      nextId = d.nextId || 1;
+      Object.values(nodes).forEach(n => {
+        if (n.ci === undefined) n.ci = 0;
+        if (n.open === undefined) n.open = false;
+        if (n.expanded === undefined) n.expanded = true;
+        if (n.treeOpen === undefined) n.treeOpen = true;
+      });
+      lastSyncTime = new Date();
+      updateSyncTimeDisplay();
+      setSyncStatus('ok', '已同步');
+      return true;
+    } else if (json.ok && !json.data) {
+      setSyncStatus('ok', '雲端為空');
+      return true;
+    } else {
+      setSyncStatus('err', '讀取失敗');
+      return false;
+    }
+  } catch (e) {
+    setSyncStatus('err', '連線失敗');
+    return false;
+  }
+}
+
+function scheduleCloudSave() {
+  if (!gsUrl) return;
+  setSyncStatus('saving', '儲存中…');
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(doCloudSave, 1200); // 1.2秒防抖
+}
+
+async function doCloudSave() {
+  if (!gsUrl) return;
+  try {
+    const value = JSON.stringify({ nodes, rootIds, nextId });
+    const res = await fetch(gsUrl, {
+      method: 'POST',
+      body: JSON.stringify({ value }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const json = await res.json();
+    if (json.ok) {
+      lastSyncTime = new Date();
+      updateSyncTimeDisplay();
+      setSyncStatus('ok', '已同步');
+    } else {
+      setSyncStatus('err', '儲存失敗');
+    }
+  } catch (e) {
+    setSyncStatus('err', '連線失敗');
+  }
+}
+
+function updateSyncTimeDisplay() {
+  if (!lastSyncTime) return;
+  const el = document.getElementById('s-sync-time');
+  const lb = document.getElementById('s-sync-label');
+  el.style.display = '';
+  const h = lastSyncTime.getHours().toString().padStart(2, '0');
+  const m = lastSyncTime.getMinutes().toString().padStart(2, '0');
+  lb.textContent = h + ':' + m;
+}
+
+function openUrlModal() {
+  document.getElementById('gs-url-inp').value = gsUrl;
+  document.getElementById('url-modal').classList.add('open');
+}
+
+async function saveGsUrl() {
+  const val = document.getElementById('gs-url-inp').value.trim();
+  if (!val) { alert('請輸入 Web 應用程式網址'); return; }
+  gsUrl = val;
+  localStorage.setItem(GS_URL_KEY, gsUrl);
+  document.getElementById('url-modal').classList.remove('open');
+  const loaded = await cloudLoad();
+  if (loaded) { save(); render(); }
+  else {
+    // 雲端空的，把本地資料推上去
+    scheduleCloudSave();
+  }
+}
+
+function clearGsUrl() {
+  if (!confirm('確定要移除雲端連結嗎？資料仍保留在本機。')) return;
+  gsUrl = '';
+  localStorage.removeItem(GS_URL_KEY);
+  setSyncStatus('no-url', '未連結雲端');
+  document.getElementById('url-modal').classList.remove('open');
+}
+
+// ─────────────────────────────────────────────
+//  本機存取（保留作備援）
+// ─────────────────────────────────────────────
+function localSave(){
+  localStorage.setItem('dnd-v3', JSON.stringify({nodes, rootIds, nextId}));
+}
+
+function save(){
+  localSave();
+  scheduleCloudSave();
+}
+
 function load(){
   try{
     const d=localStorage.getItem('dnd-v3');
@@ -214,12 +384,12 @@ function load(){
         if(n.ci===undefined)n.ci=0;
         if(n.open===undefined)n.open=false;
         if(n.expanded===undefined)n.expanded=true;
-        if(n.treeOpen===undefined)n.treeOpen=true; // NEW: controls sub-tree collapse
+        if(n.treeOpen===undefined)n.treeOpen=true;
       });
     } else seed();
   }catch(e){seed();}
 }
-function save(){localStorage.setItem('dnd-v3',JSON.stringify({nodes,rootIds,nextId}));}
+
 function uid(){return 'n'+(nextId++);}
 function mk(title,note,tag,parentId,ci){
   const id=uid();
@@ -243,6 +413,9 @@ function seed(){
   save();
 }
 
+// ─────────────────────────────────────────────
+//  節點操作
+// ─────────────────────────────────────────────
 let rootCi=0;
 function buildSw(id,cur,cb){
   const el=document.getElementById(id);if(!el)return;
@@ -316,6 +489,9 @@ function importData(e){
   r.readAsText(f);e.target.value='';
 }
 
+// ─────────────────────────────────────────────
+//  渲染
+// ─────────────────────────────────────────────
 function render(){
   const cnt=Object.keys(nodes).length;
   document.getElementById('s-count').textContent=cnt;
@@ -334,112 +510,72 @@ function rNode(id,depth){
   const pal=PALETTE[n.ci]||PALETTE[0];
   const ts=TAG_STYLE[n.tag]||{bg:'#f0f0f0',color:'#666'};
   const isRoot=depth===0;
-
   const wrap=document.createElement('div');wrap.className='node-wrap';
   const row=document.createElement('div');row.className='node-row';
-
-  if(depth>0){
-    const cn=document.createElement('div');cn.className='conn';row.appendChild(cn);
-  }
-
+  if(depth>0){const cn=document.createElement('div');cn.className='conn';row.appendChild(cn);}
   const main=document.createElement('div');main.className='node-main';
-
-  // card
   const card=document.createElement('div');
   card.className='card'+(isRoot?' root-card':'');
   card.style.borderColor=pal.border;
   card.style.background=pal.bg;
-  if(isRoot){
-    card.style.borderLeftWidth='4px';
-    card.style.borderLeftColor=pal.accent||pal.dot;
-  }
-
-  // head
+  if(isRoot){card.style.borderLeftWidth='4px';card.style.borderLeftColor=pal.accent||pal.dot;}
   const head=document.createElement('div');head.className='card-head';
   const hasContent=n.note||editingId===id;
   head.onclick=e=>{
     if(e.target.closest('.act,.edit-form,.child-form,.btn,.swatch,.tree-toggle'))return;
     if(hasContent||editingId===id){n.open=!n.open;save();render();}
   };
-
-  // chevron for note expand
   const chev=document.createElement('span');
   chev.className='chevron'+(n.open||editingId===id?' open':'');
   chev.textContent='▶';
   chev.style.visibility=hasContent||editingId===id?'visible':'hidden';
   head.appendChild(chev);
-
   const dot=document.createElement('div');dot.className='color-dot';dot.style.background=pal.dot;
   head.appendChild(dot);
-
   const tagpill=document.createElement('span');tagpill.className='tag-pill';
   tagpill.style.background=ts.bg;tagpill.style.color=ts.color;
   tagpill.textContent=n.tag;head.appendChild(tagpill);
-
   const titleEl=document.createElement('span');titleEl.className='card-title';titleEl.textContent=n.title;
   head.appendChild(titleEl);
-
   const dateEl=document.createElement('span');dateEl.className='card-date';dateEl.textContent=n.created;
   head.appendChild(dateEl);
-
-  // Sub-tree toggle button (only for root nodes with children)
   if(isRoot && n.children.length>0){
     const tog=document.createElement('button');
     tog.className='tree-toggle'+(n.treeOpen?'':' collapsed');
     const childCount=countDescendants(id);
-    tog.textContent=n.treeOpen?`▲ 收起 (${childCount})`:` ▼ 展開 (${childCount})`;
+    tog.textContent=n.treeOpen?`▲ 收起 (${childCount})`:`▼ 展開 (${childCount})`;
     tog.title=n.treeOpen?'收起子事件':'展開子事件';
-    tog.onclick=e=>{
-      e.stopPropagation();
-      n.treeOpen=!n.treeOpen;
-      save();render();
-    };
+    tog.onclick=e=>{e.stopPropagation();n.treeOpen=!n.treeOpen;save();render();};
     head.appendChild(tog);
   }
-
   card.appendChild(head);
-
-  // body (note / edit form)
   const body=document.createElement('div');
   body.className='card-body'+((n.open||editingId===id)?' open':'');
-  if(editingId===id){
-    body.appendChild(buildEditForm(n));
-  } else if(n.note){
-    const noteEl=document.createElement('div');noteEl.className='card-note';noteEl.textContent=n.note;
-    body.appendChild(noteEl);
-  }
+  if(editingId===id){body.appendChild(buildEditForm(n));}
+  else if(n.note){const noteEl=document.createElement('div');noteEl.className='card-note';noteEl.textContent=n.note;body.appendChild(noteEl);}
   card.appendChild(body);
   main.appendChild(card);
-
-  // child add form
   if(addingChildOf===id)main.appendChild(buildChildForm(id));
-
-  const showChildren = n.children.length > 0 && (isRoot ? n.treeOpen : n.expanded);
+  const showChildren=n.children.length>0&&(isRoot?n.treeOpen:n.expanded);
   if(showChildren){
     const ch=document.createElement('div');ch.className='children';
     n.children.forEach(cid=>ch.appendChild(rNode(cid,depth+1)));
     main.appendChild(ch);
   }
-
   row.appendChild(main);
-
-  // actions
   const acts=document.createElement('div');acts.className='node-actions';
   const aAdd=document.createElement('button');aAdd.className='act add';aAdd.title='新增子節點';aAdd.textContent='＋';
   aAdd.onclick=e=>{
     e.stopPropagation();
-    addingChildOf=(addingChildOf===id?null:id);
-    editingId=null;
-    nodes[id].expanded=true;
-    if(isRoot) nodes[id].treeOpen=true;
+    addingChildOf=(addingChildOf===id?null:id);editingId=null;
+    nodes[id].expanded=true;if(isRoot)nodes[id].treeOpen=true;
     render();
     setTimeout(()=>{const el=document.getElementById('cf-t-'+id);if(el)el.focus();},50);
   };
   const aEd=document.createElement('button');aEd.className='act';aEd.title='編輯';aEd.textContent='✎';
   aEd.onclick=e=>{
     e.stopPropagation();
-    if(editingId===id){editingId=null;}
-    else{editingId=id;addingChildOf=null;n.open=true;}
+    if(editingId===id){editingId=null;}else{editingId=id;addingChildOf=null;n.open=true;}
     render();
   };
   const aDel=document.createElement('button');aDel.className='act red';aDel.title='刪除';aDel.textContent='✕';
@@ -453,8 +589,7 @@ function rNode(id,depth){
 function countDescendants(id){
   let count=0;
   function walk(nid){nodes[nid].children.forEach(c=>{count++;walk(c);});}
-  walk(id);
-  return count;
+  walk(id);return count;
 }
 
 function tagOpts(sel){
@@ -527,7 +662,28 @@ function buildChildForm(pid){
 }
 
 document.getElementById('root-inp').addEventListener('keydown',e=>{if(e.key==='Enter')addRoot();});
-load();initRootSw();render();
+
+// ─────────────────────────────────────────────
+//  啟動
+// ─────────────────────────────────────────────
+async function init() {
+  load(); // 先讀本地快取，立刻顯示
+  initRootSw();
+  render();
+
+  if (gsUrl) {
+    setSyncStatus('saving', '連接雲端…');
+    const loaded = await cloudLoad();
+    if (loaded) {
+      localSave();
+      render();
+    }
+  } else {
+    setSyncStatus('no-url', '未連結雲端');
+  }
+}
+
+init();
 </script>
 </body>
 </html>
