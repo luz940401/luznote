@@ -43,8 +43,14 @@ header{
   .card-title{font-size:14px}
   .root-card .card-title{font-size:15px}
   .stats-bar{flex-wrap:wrap;gap:5px}
-  .node-actions{flex-direction:row;padding-top:0;gap:3px;align-self:flex-start;margin-top:2px}
   .node-row{align-items:flex-start}
+  .card-date{display:none}
+  .card-head{gap:5px;padding:10px 10px}
+  .children{padding-left:14px}
+  .conn{width:14px}
+  .conn::before{left:5px}
+  .conn::after{left:5px;width:9px}
+  .drag-handle{width:16px}
 }
 
 /* ── 雲端狀態指示器 ── */
@@ -108,12 +114,12 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 .card:hover{border-color:#c8c0b0;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .card.root-card{border-width:1px}
 .card.root-card::before{display:none}
-.card-head{display:flex;align-items:center;gap:9px;padding:12px 14px;cursor:pointer;user-select:none}
+.card-head{display:flex;align-items:center;gap:7px;padding:11px 12px;cursor:pointer;user-select:none;min-width:0}
 .chevron{font-size:10px;color:#bbb;flex-shrink:0;transition:transform .25s;line-height:1}
 .chevron.open{transform:rotate(90deg)}
 .color-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .tag-pill{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;letter-spacing:.04em;flex-shrink:0}
-.card-title{font-size:15px;font-weight:600;flex:1;line-height:1.4;word-break:break-all;color:#111;letter-spacing:.01em}
+.card-title{font-size:15px;font-weight:600;flex:1;min-width:0;line-height:1.4;word-break:break-word;color:#111;letter-spacing:.01em}
 .card-date{font-size:11px;color:#bbb;flex-shrink:0}
 .root-card .card-title{font-size:16px;font-weight:700}
 .tree-toggle{font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid #e0dbd2;background:#f7f5f0;color:#999;cursor:pointer;transition:all .15s;white-space:nowrap;margin-left:2px;flex-shrink:0}
@@ -130,8 +136,8 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 .form-btns{display:flex;gap:6px}
 .child-form{background:#faf8f4;border:1px solid #e0dbd2;border-radius:10px;padding:13px 14px;margin-top:6px;display:flex;flex-direction:column;gap:8px}
 .children{padding-left:24px;margin-top:6px;display:flex;flex-direction:column;gap:6px}
-.node-actions{display:flex;flex-direction:column;gap:3px;padding-top:4px}
-.act{width:28px;height:28px;border-radius:6px;border:1px solid #ece8e0;background:#fff;color:#bbb;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.node-actions{display:flex;flex-direction:row;gap:2px;flex-shrink:0;align-items:center;margin-left:auto}
+.act{width:26px;height:26px;border-radius:5px;border:1px solid #ece8e0;background:rgba(255,255,255,.7);color:#ccc;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .act:hover{border-color:#ccc;color:#555;background:#f7f5f0}
 .act.red:hover{border-color:#f0b0b0;color:#c04040;background:#fff5f5}
 .act.add:hover{border-color:#aad4aa;color:#3a8a3a;background:#f3fbf3}
@@ -174,7 +180,7 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 
 /* ── Drag and drop ── */
 .node-wrap{position:relative;cursor:default}
-.drag-handle{width:20px;height:32px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:14px;cursor:grab;flex-shrink:0;user-select:none;touch-action:none}
+.drag-handle{width:20px;height:32px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:14px;cursor:grab;flex-shrink:0;user-select:none;touch-action:none;-webkit-user-select:none}
 .drag-handle:hover{color:#888}
 .drag-handle:active{cursor:grabbing}
 #drag-ghost{
@@ -696,21 +702,7 @@ function rNode(id,depth){
     tog.onclick=e=>{e.stopPropagation();n.treeOpen=!n.treeOpen;save();render();};
     head.appendChild(tog);
   }
-  card.appendChild(head);
-  const body=document.createElement('div');
-  body.className='card-body'+((n.open||editingId===id)?' open':'');
-  if(editingId===id){body.appendChild(buildEditForm(n));}
-  else if(n.note){const noteEl=document.createElement('div');noteEl.className='card-note';noteEl.textContent=n.note;body.appendChild(noteEl);}
-  card.appendChild(body);
-  main.appendChild(card);
-  if(addingChildOf===id)main.appendChild(buildChildForm(id));
-  const showChildren=n.children.length>0&&(isRoot?n.treeOpen:n.expanded);
-  if(showChildren){
-    const ch=document.createElement('div');ch.className='children';
-    n.children.forEach(cid=>ch.appendChild(rNode(cid,depth+1)));
-    main.appendChild(ch);
-  }
-  row.appendChild(main);
+  // ── inline action buttons inside card head ──
   const acts=document.createElement('div');acts.className='node-actions';
   const aAdd=document.createElement('button');aAdd.className='act add';aAdd.title='新增子節點';aAdd.textContent='＋';
   aAdd.onclick=e=>{
@@ -729,7 +721,22 @@ function rNode(id,depth){
   const aDel=document.createElement('button');aDel.className='act red';aDel.title='刪除';aDel.textContent='✕';
   aDel.onclick=e=>{e.stopPropagation();delNode(id);};
   acts.appendChild(aAdd);acts.appendChild(aEd);acts.appendChild(aDel);
-  row.appendChild(acts);
+  head.appendChild(acts);
+  card.appendChild(head);
+  const body=document.createElement('div');
+  body.className='card-body'+((n.open||editingId===id)?' open':'');
+  if(editingId===id){body.appendChild(buildEditForm(n));}
+  else if(n.note){const noteEl=document.createElement('div');noteEl.className='card-note';noteEl.textContent=n.note;body.appendChild(noteEl);}
+  card.appendChild(body);
+  main.appendChild(card);
+  if(addingChildOf===id)main.appendChild(buildChildForm(id));
+  const showChildren=n.children.length>0&&(isRoot?n.treeOpen:n.expanded);
+  if(showChildren){
+    const ch=document.createElement('div');ch.className='children';
+    n.children.forEach(cid=>ch.appendChild(rNode(cid,depth+1)));
+    main.appendChild(ch);
+  }
+  row.appendChild(main);
   wrap.appendChild(row);
   return wrap;
 }
@@ -875,30 +882,58 @@ function highlightText(text,query){
 let dragState = null; // { id, srcParentId, ghost, startX, startY, moved }
 
 function initDragHandle(handle, id) {
-  handle.addEventListener('pointerdown', e => startDrag(e, id));
+  let pressTimer = null;
+  let pressStartX = 0, pressStartY = 0;
+
+  handle.addEventListener('pointerdown', e => {
+    pressStartX = e.clientX; pressStartY = e.clientY;
+    // Desktop: start immediately; mobile (touch): wait 250ms long-press
+    const isMouse = e.pointerType === 'mouse';
+    if (isMouse) {
+      e.preventDefault(); e.stopPropagation();
+      startDrag(e, id);
+    } else {
+      pressTimer = setTimeout(() => {
+        // Vibrate feedback on mobile
+        if (navigator.vibrate) navigator.vibrate(40);
+        startDrag(e, id);
+      }, 250);
+    }
+  });
+  handle.addEventListener('pointermove', e => {
+    // Cancel long-press if moved too much
+    if (pressTimer && (Math.abs(e.clientX - pressStartX) > 8 || Math.abs(e.clientY - pressStartY) > 8)) {
+      clearTimeout(pressTimer); pressTimer = null;
+    }
+  });
+  handle.addEventListener('pointerup', () => { clearTimeout(pressTimer); pressTimer = null; });
+  handle.addEventListener('pointercancel', () => { clearTimeout(pressTimer); pressTimer = null; });
 }
 
 function startDrag(e, id) {
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault && e.preventDefault();
   const ghost = document.getElementById('drag-ghost');
   ghost.textContent = '✦ ' + nodes[id].title;
   ghost.style.display = 'block';
-  ghost.style.left = e.clientX + 'px';
+  ghost.style.left = (e.clientX + 16) + 'px';
   ghost.style.top = e.clientY + 'px';
 
   dragState = { id, moved: false };
 
+  // Prevent page scroll while dragging on touch
+  document.body.style.overflow = 'hidden';
+
   // Show root drop zone
   document.getElementById('root-drop-zone').classList.add('active');
 
-  document.addEventListener('pointermove', onDragMove);
+  document.addEventListener('pointermove', onDragMove, {passive: false});
   document.addEventListener('pointerup', onDragUp);
   document.addEventListener('pointercancel', onDragUp);
 }
 
 function onDragMove(e) {
   if (!dragState) return;
+  e.preventDefault(); // prevent scroll while dragging on touch
   dragState.moved = true;
 
   const ghost = document.getElementById('drag-ghost');
@@ -962,6 +997,7 @@ function onDragUp(e) {
 
   const ghost = document.getElementById('drag-ghost');
   ghost.style.display = 'none';
+  document.body.style.overflow = '';
 
   const rootZone = document.getElementById('root-drop-zone');
   const isRootZone = rootZone.classList.contains('hover');
