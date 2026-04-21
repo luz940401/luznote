@@ -37,20 +37,15 @@ header{
   .header-menu-btn{display:block}
   .sync-status span{display:none}
   .sync-status{padding:6px 8px}
-  main{padding:16px 10px 80px}
-  .add-row{flex-direction:column}
+  main{padding:16px 0 80px}
+  .add-row{flex-direction:column;padding:0}
   .add-row .inp,.add-row .sel,.add-row .btn{width:100%}
   .card-title{font-size:14px}
   .root-card .card-title{font-size:15px}
   .stats-bar{flex-wrap:wrap;gap:5px}
   .node-row{align-items:flex-start}
   .card-date{display:none}
-  .card-head{gap:5px;padding:10px 10px}
-  .children{padding-left:14px}
-  .conn{width:14px}
-  .conn::before{left:5px}
-  .conn::after{left:5px;width:9px}
-  .drag-handle{width:16px}
+  .card-head{gap:6px;padding:10px 10px}
 }
 
 /* ── 雲端狀態指示器 ── */
@@ -72,10 +67,10 @@ header{
 .sync-status.no-url:hover{border-color:#a09080;background:#f0ece4}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
+main{max-width:700px;margin:0 auto;padding:24px 0 100px}
 
 /* ── Add box ── */
-.add-box{background:#fff;border:1px solid #e0dbd2;border-radius:12px;padding:18px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.add-box{background:#fff;border:1px solid #e0dbd2;border-radius:12px;padding:18px;margin:0 16px 20px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .add-box-title{font-size:11px;font-weight:500;color:#aaa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
 .add-row{display:flex;gap:8px;flex-wrap:wrap}
 .inp{background:#f7f5f2;border:1px solid #e0dbd4;border-radius:7px;color:#1a1a1a;font-family:'Noto Sans TC',sans-serif;font-size:14px;padding:9px 12px;outline:none;transition:border .15s,background .15s}
@@ -96,18 +91,22 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 .btn.ghost:hover{color:#333;border-color:#ccc;background:#fafafa}
 
 /* ── Stats bar ── */
-.stats-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:0 2px}
+.stats-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:0 16px}
 .stat-item{font-size:12px;color:#999;background:#fff;border:1px solid #e8e3dc;border-radius:20px;padding:3px 12px}
 .stat-item strong{color:#666;font-weight:500}
 
 /* ── Tree ── */
-.tree{display:flex;flex-direction:column;gap:10px}
+.tree-scroll{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;padding:0 16px 16px;cursor:default}
+.tree-scroll::-webkit-scrollbar{height:4px}
+.tree-scroll::-webkit-scrollbar-track{background:transparent}
+.tree-scroll::-webkit-scrollbar-thumb{background:#d8d0c5;border-radius:2px}
+.tree{display:flex;flex-direction:column;gap:10px;min-width:320px;width:max-content;max-width:none}
 .node-wrap{position:relative}
 .node-row{display:flex;align-items:flex-start;gap:6px}
 .conn{width:24px;flex-shrink:0;position:relative;align-self:stretch;padding-top:22px}
 .conn::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:1px;background:#d8d0c5}
 .conn::after{content:'';position:absolute;left:10px;top:22px;width:14px;height:1px;background:#d8d0c5}
-.node-main{flex:1;min-width:0}
+.node-main{flex:1;min-width:260px;max-width:520px}
 
 /* ── Card ── */
 .card{background:#fff;border:1px solid #e0dbd2;border-radius:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
@@ -135,7 +134,7 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 .edit-form textarea{min-height:80px;resize:vertical;line-height:1.6}
 .form-btns{display:flex;gap:6px}
 .child-form{background:#faf8f4;border:1px solid #e0dbd2;border-radius:10px;padding:13px 14px;margin-top:6px;display:flex;flex-direction:column;gap:8px}
-.children{padding-left:24px;margin-top:6px;display:flex;flex-direction:column;gap:6px}
+.children{padding-left:20px;margin-top:6px;display:flex;flex-direction:column;gap:6px}
 .node-actions{display:flex;flex-direction:row;gap:2px;flex-shrink:0;align-items:center;margin-left:auto}
 .act{width:26px;height:26px;border-radius:5px;border:1px solid #ece8e0;background:rgba(255,255,255,.7);color:#ccc;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .act:hover{border-color:#ccc;color:#555;background:#f7f5f0}
@@ -163,7 +162,7 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── Search bar ── */
-.search-wrap{position:relative;margin-bottom:14px}
+.search-wrap{position:relative;margin:0 16px 14px}
 .search-inp{width:100%;background:#fff;border:1px solid #e0dbd2;border-radius:10px;padding:10px 14px 10px 38px;font-size:14px;font-family:'Noto Sans TC',sans-serif;color:#1a1a1a;outline:none;transition:border .15s,box-shadow .15s;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .search-inp:focus{border-color:#a09070;box-shadow:0 0 0 3px rgba(160,144,112,.1)}
 .search-inp::placeholder{color:#bbb}
@@ -198,7 +197,7 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 #root-drop-zone{
   min-height:44px;border:2px dashed #c8c0b0;border-radius:10px;
   display:none;align-items:center;justify-content:center;
-  color:#aaa;font-size:13px;margin-top:8px;transition:all .2s;cursor:default;
+  color:#aaa;font-size:13px;margin:8px 16px 0;transition:all .2s;cursor:default;
 }
 #root-drop-zone.active{display:flex}
 #root-drop-zone.hover{border-color:#7a9a6a;color:#5a8a5a;background:#f3fbf5}
@@ -256,7 +255,9 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
     <span class="stat-item" id="s-sync-time" style="display:none">上次同步 <strong id="s-sync-label">—</strong></span>
   </div>
 
-  <div class="tree" id="tree"></div>
+  <div class="tree-scroll" id="tree-scroll">
+    <div class="tree" id="tree"></div>
+  </div>
   <div id="root-drop-zone">⬆ 拖曳到這裡，升為主線節點</div>
 </main>
 <div id="drag-ghost"></div>
