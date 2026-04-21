@@ -24,6 +24,29 @@ header{
 .hbtn.accent{border-color:#c0b8a8;color:#5a5040;background:#faf8f4}
 .hbtn.accent:hover{border-color:#a09080;background:#f5f0e8}
 
+/* ── Mobile hamburger menu ── */
+.header-menu-btn{display:none;padding:6px 10px;font-size:16px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;cursor:pointer;line-height:1}
+.header-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+@media(max-width:600px){
+  header{flex-wrap:wrap;padding:10px 12px;gap:6px}
+  .logo{font-size:15px;flex:1}
+  .logo em{display:none}
+  .header-divider{display:none}
+  .header-actions{display:none;width:100%;gap:6px;padding-top:6px;border-top:1px solid #ede8e0;flex-wrap:wrap}
+  .header-actions.open{display:flex}
+  .header-menu-btn{display:block}
+  .sync-status span{display:none}
+  .sync-status{padding:6px 8px}
+  main{padding:16px 10px 80px}
+  .add-row{flex-direction:column}
+  .add-row .inp,.add-row .sel,.add-row .btn{width:100%}
+  .card-title{font-size:14px}
+  .root-card .card-title{font-size:15px}
+  .stats-bar{flex-wrap:wrap;gap:5px}
+  .node-actions{flex-direction:row;padding-top:0;gap:3px;align-self:flex-start;margin-top:2px}
+  .node-row{align-items:flex-start}
+}
+
 /* ── 雲端狀態指示器 ── */
 .sync-status{
   display:flex;align-items:center;gap:5px;
@@ -132,6 +155,47 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
 /* Subtle animation */
 .children{animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Search bar ── */
+.search-wrap{position:relative;margin-bottom:14px}
+.search-inp{width:100%;background:#fff;border:1px solid #e0dbd2;border-radius:10px;padding:10px 14px 10px 38px;font-size:14px;font-family:'Noto Sans TC',sans-serif;color:#1a1a1a;outline:none;transition:border .15s,box-shadow .15s;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.search-inp:focus{border-color:#a09070;box-shadow:0 0 0 3px rgba(160,144,112,.1)}
+.search-inp::placeholder{color:#bbb}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;color:#ccc;pointer-events:none}
+.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#bbb;font-size:16px;cursor:pointer;padding:2px 5px;line-height:1;display:none}
+.search-clear.show{display:block}
+.search-results-info{font-size:12px;color:#999;margin-bottom:8px;padding:0 2px}
+.search-highlight{background:#fff3b8;border-radius:2px;padding:0 1px}
+.node-wrap.search-hidden{display:none}
+
+/* ── Delete confirm modal ── */
+#del-modal .modal{border-top:4px solid #e05050}
+#del-modal .modal h3{color:#c04040}
+
+/* ── Drag and drop ── */
+.node-wrap{position:relative;cursor:default}
+.drag-handle{width:20px;height:32px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:14px;cursor:grab;flex-shrink:0;user-select:none;touch-action:none}
+.drag-handle:hover{color:#888}
+.drag-handle:active{cursor:grabbing}
+#drag-ghost{
+  position:fixed;z-index:9999;pointer-events:none;
+  background:#fff;border:2px solid #7a9a6a;border-radius:10px;
+  padding:8px 14px;font-size:13px;font-family:'Noto Sans TC',sans-serif;
+  color:#333;box-shadow:0 8px 24px rgba(0,0,0,.18);
+  max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:none;transform:translate(-10px,-50%);
+}
+.node-wrap.is-dragging > .node-row{opacity:.35}
+.card.drop-into{outline:2px dashed #7a9a6a;outline-offset:2px;background-color:#f3fbf5 !important}
+.node-wrap.drop-before::before{content:'';display:block;height:4px;background:#7a9a6a;border-radius:2px;margin-bottom:3px}
+.node-wrap.drop-after::after{content:'';display:block;height:4px;background:#7a9a6a;border-radius:2px;margin-top:3px}
+#root-drop-zone{
+  min-height:44px;border:2px dashed #c8c0b0;border-radius:10px;
+  display:none;align-items:center;justify-content:center;
+  color:#aaa;font-size:13px;margin-top:8px;transition:all .2s;cursor:default;
+}
+#root-drop-zone.active{display:flex}
+#root-drop-zone.hover{border-color:#7a9a6a;color:#5a8a5a;background:#f3fbf5}
 </style>
 </head>
 <body>
@@ -142,12 +206,15 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
     <div class="sync-dot"></div>
     <span id="sync-text">未連結雲端</span>
   </div>
-  <button class="hbtn accent" onclick="expandAll()">全開</button>
-  <button class="hbtn accent" onclick="collapseAll()">全收</button>
-  <div class="header-divider"></div>
-  <button class="hbtn" onclick="exportData()">匯出</button>
-  <button class="hbtn" onclick="document.getElementById('imp').click()">匯入</button>
-  <button class="hbtn red" onclick="document.getElementById('clr-modal').classList.add('open')">清除</button>
+  <button class="header-menu-btn" onclick="toggleHeaderMenu()" id="header-menu-btn" title="選單">☰</button>
+  <div class="header-actions" id="header-actions">
+    <button class="hbtn accent" onclick="expandAll()">全開</button>
+    <button class="hbtn accent" onclick="collapseAll()">全收</button>
+    <div class="header-divider"></div>
+    <button class="hbtn" onclick="exportData()">匯出</button>
+    <button class="hbtn" onclick="document.getElementById('imp').click()">匯入</button>
+    <button class="hbtn red" onclick="document.getElementById('clr-modal').classList.add('open')">清除</button>
+  </div>
   <input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)">
 </header>
 
@@ -169,6 +236,14 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
     <div class="swatches" id="root-sw"></div>
   </div>
 
+  <!-- 搜尋欄 -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-inp" id="search-inp" placeholder="搜尋節點標題、內容、類型..." oninput="onSearch(this.value)">
+    <button class="search-clear" id="search-clear" onclick="clearSearch()" title="清除搜尋">✕</button>
+  </div>
+  <div class="search-results-info" id="search-info" style="display:none"></div>
+
   <div class="stats-bar">
     <span class="stat-item"><strong id="s-count">0</strong> 則筆記</span>
     <span class="stat-item"><strong id="s-roots">0</strong> 條主線</span>
@@ -176,7 +251,9 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
   </div>
 
   <div class="tree" id="tree"></div>
+  <div id="root-drop-zone">⬆ 拖曳到這裡，升為主線節點</div>
 </main>
+<div id="drag-ghost"></div>
 
 <!-- 清除確認 Modal -->
 <div class="modal-bg" id="clr-modal">
@@ -186,6 +263,18 @@ main{max-width:700px;margin:0 auto;padding:24px 16px 100px}
     <div class="modal-btns">
       <button class="btn ghost" onclick="document.getElementById('clr-modal').classList.remove('open')">取消</button>
       <button class="btn" style="border-color:#f0b0b0;color:#c04040" onclick="clearAll()">確認清除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 刪除節點確認 Modal -->
+<div class="modal-bg" id="del-modal">
+  <div class="modal">
+    <h3>刪除節點？</h3>
+    <p id="del-modal-msg">確定要刪除此節點及其所有子節點嗎？此操作無法復原。</p>
+    <div class="modal-btns">
+      <button class="btn ghost" onclick="document.getElementById('del-modal').classList.remove('open')">取消</button>
+      <button class="btn" style="border-color:#f0b0b0;color:#c04040;background:#fff5f5" onclick="confirmDelete()">確認刪除</button>
     </div>
   </div>
 </div>
@@ -441,7 +530,23 @@ function addRoot(){
   save();render();
 }
 
+let pendingDeleteId = null;
 function delNode(id){
+  const n = nodes[id];
+  const childCount = countDescendants(id);
+  const msg = childCount > 0
+    ? `確定要刪除「${n.title}」及其 ${childCount} 個子節點嗎？此操作無法復原。`
+    : `確定要刪除「${n.title}」嗎？此操作無法復原。`;
+  document.getElementById('del-modal-msg').textContent = msg;
+  pendingDeleteId = id;
+  document.getElementById('del-modal').classList.add('open');
+}
+
+function confirmDelete(){
+  if(!pendingDeleteId) return;
+  const id = pendingDeleteId;
+  pendingDeleteId = null;
+  document.getElementById('del-modal').classList.remove('open');
   function dt(nid){nodes[nid].children.forEach(c=>dt(c));delete nodes[nid];}
   const n=nodes[id];
   if(n.parentId)nodes[n.parentId].children=nodes[n.parentId].children.filter(c=>c!==id);
@@ -504,6 +609,38 @@ function render(){
   } else {
     rootIds.forEach(id=>tree.appendChild(rNode(id,0)));
   }
+  // Apply search filter after render
+  if(searchQuery){
+    let matchCount=0;
+    function nodeMatches(id){
+      const n=nodes[id];
+      const q=searchQuery;
+      return n.title.toLowerCase().includes(q)||
+             n.note.toLowerCase().includes(q)||
+             n.tag.toLowerCase().includes(q);
+    }
+    function hasMatchInTree(id){
+      if(nodeMatches(id))return true;
+      return nodes[id].children.some(c=>hasMatchInTree(c));
+    }
+    document.querySelectorAll('.node-wrap').forEach(el=>{
+      const id=el.dataset.id;if(!id)return;
+      const visible=hasMatchInTree(id);
+      el.classList.toggle('search-hidden',!visible);
+      if(visible&&nodeMatches(id)){
+        matchCount++;
+        // Highlight title
+        const titleEl=el.querySelector('.card-title');
+        if(titleEl)titleEl.innerHTML=highlightText(nodes[id].title,searchQuery);
+        // Highlight note
+        const noteEl=el.querySelector('.card-note');
+        if(noteEl)noteEl.innerHTML=highlightText(nodes[id].note,searchQuery);
+      }
+    });
+    const info=document.getElementById('search-info');
+    info.style.display='';
+    info.textContent=`找到 ${matchCount} 個相關節點`;
+  }
 }
 
 function rNode(id,depth){
@@ -512,7 +649,12 @@ function rNode(id,depth){
   const ts=TAG_STYLE[n.tag]||{bg:'#f0f0f0',color:'#666'};
   const isRoot=depth===0;
   const wrap=document.createElement('div');wrap.className='node-wrap';
+  wrap.dataset.id=id;wrap.dataset.depth=depth;
   const row=document.createElement('div');row.className='node-row';
+  // Drag handle
+  const dh=document.createElement('div');dh.className='drag-handle';dh.title='拖曳移動';dh.textContent='⠿';
+  initDragHandle(dh, id);
+  row.appendChild(dh);
   if(depth>0){const cn=document.createElement('div');cn.className='conn';row.appendChild(cn);}
   const main=document.createElement('div');main.className='node-main';
   const card=document.createElement('div');
@@ -536,7 +678,12 @@ function rNode(id,depth){
   const tagpill=document.createElement('span');tagpill.className='tag-pill';
   tagpill.style.background=ts.bg;tagpill.style.color=ts.color;
   tagpill.textContent=n.tag;head.appendChild(tagpill);
-  const titleEl=document.createElement('span');titleEl.className='card-title';titleEl.textContent=n.title;
+  const titleEl=document.createElement('span');titleEl.className='card-title';
+  if(searchQuery&&n.title.toLowerCase().includes(searchQuery)){
+    titleEl.innerHTML=highlightText(n.title,searchQuery);
+  } else {
+    titleEl.textContent=n.title;
+  }
   head.appendChild(titleEl);
   const dateEl=document.createElement('span');dateEl.className='card-date';dateEl.textContent=n.created;
   head.appendChild(dateEl);
@@ -663,6 +810,244 @@ function buildChildForm(pid){
 }
 
 document.getElementById('root-inp').addEventListener('keydown',e=>{if(e.key==='Enter')addRoot();});
+
+// ─────────────────────────────────────────────
+//  漢堡選單（手機）
+// ─────────────────────────────────────────────
+function toggleHeaderMenu(){
+  const actions=document.getElementById('header-actions');
+  const btn=document.getElementById('header-menu-btn');
+  const open=actions.classList.toggle('open');
+  btn.textContent=open?'✕':'☰';
+}
+// Close menu when clicking outside
+document.addEventListener('click',e=>{
+  if(!e.target.closest('header')){
+    const actions=document.getElementById('header-actions');
+    const btn=document.getElementById('header-menu-btn');
+    if(actions.classList.contains('open')){
+      actions.classList.remove('open');
+      btn.textContent='☰';
+    }
+  }
+});
+
+// ─────────────────────────────────────────────
+//  搜尋
+// ─────────────────────────────────────────────
+let searchQuery='';
+function onSearch(val){
+  searchQuery=val.trim().toLowerCase();
+  const clearBtn=document.getElementById('search-clear');
+  clearBtn.classList.toggle('show',searchQuery.length>0);
+  renderSearch();
+}
+function clearSearch(){
+  document.getElementById('search-inp').value='';
+  searchQuery='';
+  document.getElementById('search-clear').classList.remove('show');
+  document.getElementById('search-info').style.display='none';
+  renderSearch();
+}
+function renderSearch(){
+  if(!searchQuery){
+    document.getElementById('search-info').style.display='none';
+    document.querySelectorAll('.node-wrap').forEach(el=>el.classList.remove('search-hidden'));
+    // Remove highlights
+    document.querySelectorAll('.search-highlight').forEach(el=>{
+      el.outerHTML=el.textContent;
+    });
+    return;
+  }
+  // Re-render so highlights apply
+  render();
+}
+function highlightText(text,query){
+  if(!query)return esc(text);
+  const escaped=esc(text);
+  const escapedQ=query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return escaped.replace(new RegExp('('+escapedQ+')','gi'),'<mark class="search-highlight">$1</mark>');
+}
+
+// ─────────────────────────────────────────────
+//  拖曳系統（Pointer Events — 支援跨層/跨父/升主線）
+// ─────────────────────────────────────────────
+let dragState = null; // { id, srcParentId, ghost, startX, startY, moved }
+
+function initDragHandle(handle, id) {
+  handle.addEventListener('pointerdown', e => startDrag(e, id));
+}
+
+function startDrag(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  const ghost = document.getElementById('drag-ghost');
+  ghost.textContent = '✦ ' + nodes[id].title;
+  ghost.style.display = 'block';
+  ghost.style.left = e.clientX + 'px';
+  ghost.style.top = e.clientY + 'px';
+
+  dragState = { id, moved: false };
+
+  // Show root drop zone
+  document.getElementById('root-drop-zone').classList.add('active');
+
+  document.addEventListener('pointermove', onDragMove);
+  document.addEventListener('pointerup', onDragUp);
+  document.addEventListener('pointercancel', onDragUp);
+}
+
+function onDragMove(e) {
+  if (!dragState) return;
+  dragState.moved = true;
+
+  const ghost = document.getElementById('drag-ghost');
+  ghost.style.left = (e.clientX + 16) + 'px';
+  ghost.style.top = e.clientY + 'px';
+
+  // Mark source
+  const srcWrap = document.querySelector(`.node-wrap[data-id="${dragState.id}"]`);
+  if (srcWrap) srcWrap.classList.add('is-dragging');
+
+  // Clear all drop indicators
+  clearDropIndicators();
+
+  // Find what's under cursor (skip ghost)
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  if (!el) return;
+
+  // Root drop zone?
+  const rootZone = document.getElementById('root-drop-zone');
+  if (el.closest('#root-drop-zone')) {
+    rootZone.classList.add('hover');
+    return;
+  }
+  rootZone.classList.remove('hover');
+
+  // Check if hovering a card (drop INTO = become child)
+  const card = el.closest('.card');
+  const wrap = el.closest('.node-wrap');
+  if (!wrap) return;
+  const targetId = wrap.dataset.id;
+  if (!targetId || targetId === dragState.id) return;
+  // Don't allow dropping into own descendants
+  if (isDescendant(dragState.id, targetId)) return;
+
+  const rect = wrap.getBoundingClientRect();
+  const relY = e.clientY - rect.top;
+  const zone = rect.height;
+
+  if (relY < zone * 0.25) {
+    // Top 25%: insert before this node (sibling)
+    wrap.classList.add('drop-before');
+    dragState.dropMode = 'before';
+    dragState.dropTarget = targetId;
+  } else if (relY > zone * 0.75) {
+    // Bottom 25%: insert after this node (sibling)
+    wrap.classList.add('drop-after');
+    dragState.dropMode = 'after';
+    dragState.dropTarget = targetId;
+  } else {
+    // Middle 50%: drop INTO (become child)
+    if (card) card.classList.add('drop-into');
+    dragState.dropMode = 'into';
+    dragState.dropTarget = targetId;
+  }
+}
+
+function onDragUp(e) {
+  document.removeEventListener('pointermove', onDragMove);
+  document.removeEventListener('pointerup', onDragUp);
+  document.removeEventListener('pointercancel', onDragUp);
+
+  const ghost = document.getElementById('drag-ghost');
+  ghost.style.display = 'none';
+
+  const rootZone = document.getElementById('root-drop-zone');
+  const isRootZone = rootZone.classList.contains('hover');
+  rootZone.classList.remove('active', 'hover');
+
+  clearDropIndicators();
+
+  const srcWrap = document.querySelector(`.node-wrap[data-id="${dragState?.id}"]`);
+  if (srcWrap) srcWrap.classList.remove('is-dragging');
+
+  if (!dragState || !dragState.moved) { dragState = null; return; }
+
+  const { id, dropMode, dropTarget } = dragState;
+  dragState = null;
+
+  if (isRootZone) {
+    // Promote to root
+    moveNode(id, null, 'root');
+    return;
+  }
+
+  if (!dropTarget || dropTarget === id) return;
+  if (isDescendant(id, dropTarget)) return;
+
+  if (dropMode === 'into') {
+    moveNode(id, dropTarget, 'child');
+  } else if (dropMode === 'before') {
+    moveNode(id, dropTarget, 'before');
+  } else if (dropMode === 'after') {
+    moveNode(id, dropTarget, 'after');
+  }
+}
+
+function clearDropIndicators() {
+  document.querySelectorAll('.drop-before,.drop-after').forEach(el => {
+    el.classList.remove('drop-before', 'drop-after');
+  });
+  document.querySelectorAll('.drop-into').forEach(el => el.classList.remove('drop-into'));
+}
+
+function isDescendant(ancestorId, checkId) {
+  // Is checkId a descendant of ancestorId?
+  function walk(nid) {
+    if (nid === checkId) return true;
+    return nodes[nid].children.some(c => walk(c));
+  }
+  return walk(ancestorId);
+}
+
+function removeFromParent(id) {
+  const n = nodes[id];
+  if (n.parentId) {
+    nodes[n.parentId].children = nodes[n.parentId].children.filter(c => c !== id);
+  } else {
+    rootIds = rootIds.filter(r => r !== id);
+  }
+  n.parentId = null;
+}
+
+function moveNode(id, targetId, mode) {
+  const srcNode = nodes[id];
+  removeFromParent(id);
+
+  if (mode === 'root') {
+    srcNode.parentId = null;
+    if (!srcNode.treeOpen) srcNode.treeOpen = true;
+    rootIds.push(id);
+  } else if (mode === 'child') {
+    srcNode.parentId = targetId;
+    nodes[targetId].children.push(id);
+    nodes[targetId].expanded = true;
+    nodes[targetId].treeOpen = true;
+  } else if (mode === 'before' || mode === 'after') {
+    const tgtNode = nodes[targetId];
+    const newParentId = tgtNode.parentId;
+    srcNode.parentId = newParentId;
+
+    const arr = newParentId ? nodes[newParentId].children : rootIds;
+    const tgtIdx = arr.indexOf(targetId);
+    if (tgtIdx === -1) { arr.push(id); }
+    else if (mode === 'before') arr.splice(tgtIdx, 0, id);
+    else arr.splice(tgtIdx + 1, 0, id);
+  }
+
+  save(); render();
+}
 
 // ─────────────────────────────────────────────
 //  啟動
