@@ -235,6 +235,7 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
         <option value="物品">📦 物品</option>
         <option value="任務">📜 任務</option>
         <option value="秘密">🔒 秘密</option>
+        <option value="線索">🔎 線索</option>
       </select>
       <button class="btn pri" onclick="addRoot()">＋ 新增</button>
     </div>
@@ -333,6 +334,7 @@ const TAG_STYLE={
   '物品':{bg:'rgba(180,140,30,.12)',  color:'#907010'},
   '任務':{bg:'rgba(50,120,220,.12)',  color:'#2050a0'},
   '秘密':{bg:'rgba(150,60,150,.12)',  color:'#7a2a7a'},
+  '線索':{bg:'rgba(20,160,180,.12)',  color:'#0a7a90'},
 };
 
 let nodes={},rootIds=[],nextId=1,editingId=null,addingChildOf=null;
@@ -749,7 +751,7 @@ function countDescendants(id){
 }
 
 function tagOpts(sel){
-  return ['事件','NPC','地點','物品','任務','秘密'].map(t=>`<option value="${t}"${t===sel?' selected':''}>${t}</option>`).join('');
+  return ['事件','NPC','地點','物品','任務','秘密','線索'].map(t=>`<option value="${t}"${t===sel?' selected':''}>${t}</option>`).join('');
 }
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
