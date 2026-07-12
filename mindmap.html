@@ -30,8 +30,12 @@ body:not(.admin-mode) .node{cursor:pointer;touch-action:manipulation}
 body:not(.admin-mode) .node:active{cursor:pointer}
 body:not(.admin-mode) .edit-form{display:none}
 body:not(.admin-mode) #detail-save-btn{display:none}
+.node-main-row{display:flex;align-items:center;gap:9px;margin-top:2px}
+.node-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#f2eee7;border:2px solid #fff;box-shadow:0 0 0 1px #d8d0c4;flex-shrink:0}
+.node-avatar.is-hidden{display:none}
+.node-text{min-width:0;flex:1}
 .node-title{font-size:14px;font-weight:700;line-height:1.35;word-break:break-word}
-.node-note{font-size:12px;color:#6f675e;line-height:1.5;margin-top:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.node-note{font-size:12px;color:#6f675e;line-height:1.5;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;margin-bottom:6px;background:#f0ece5;color:#6b5c4c}
 .status{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;margin:0 0 6px 5px;background:#eef3fb;color:#2050a0}
 .empty{max-width:420px;margin:120px auto;text-align:center;color:#aaa;border:1px dashed #d9d0c4;border-radius:12px;padding:44px;background:#f8f5ef}
@@ -227,6 +231,7 @@ function extractDriveFileId(url){
   const raw=(url||'').trim();
   if(!raw)return '';
   const patterns=[
+    /lh3\.googleusercontent\.com\/d\/([^/=?#]+)/,
     /drive\.google\.com\/file\/d\/([^/?#]+)/,
     /drive\.google\.com\/open\?id=([^&#]+)/,
     /drive\.google\.com\/uc\?id=([^&#]+)/,
@@ -239,9 +244,36 @@ function extractDriveFileId(url){
   return '';
 }
 function normalizeImageUrl(url){
+  return imageUrlCandidates(url)[0]||'';
+}
+function imageUrlCandidates(url){
   const raw=(url||'').trim();
+  if(!raw)return [];
   const id=extractDriveFileId(raw);
-  return id?`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`:raw;
+  const urls=[];
+  if(id){
+    const enc=encodeURIComponent(id);
+    urls.push(`https://lh3.googleusercontent.com/d/${enc}=w1200`);
+    urls.push(`https://drive.google.com/thumbnail?id=${enc}&sz=w1200`);
+    urls.push(`https://drive.google.com/uc?export=view&id=${enc}`);
+  }
+  urls.push(raw);
+  return [...new Set(urls)];
+}
+function setImageWithFallback(img,url,onFail){
+  const urls=imageUrlCandidates(url);
+  if(!img||!urls.length){onFail&&onFail();return;}
+  let index=0;
+  img.onerror=()=>{
+    index++;
+    if(index<urls.length){
+      img.src=urls[index];
+      return;
+    }
+    img.onerror=null;
+    onFail&&onFail();
+  };
+  img.src=urls[index];
 }
 function openableImageUrl(url){
   const raw=(url||'').trim();
@@ -462,7 +494,40 @@ function drawNode(id,pos){
   el.style.top=pos.y+'px';
   el.style.borderColor=pal.border;
   el.style.borderLeftColor=pal.accent;
-  el.innerHTML=`<span class="tag" style="background:${ts.bg};color:${ts.color}">${esc(n.tag)}</span><span class="status">${esc(n.status||'進行中')}</span><div class="node-title">${esc(n.title)}</div>${n.note?`<div class="node-note">${esc(n.note)}</div>`:''}`;
+  const tag=document.createElement('span');
+  tag.className='tag';
+  tag.style.background=ts.bg;
+  tag.style.color=ts.color;
+  tag.textContent=n.tag;
+  const status=document.createElement('span');
+  status.className='status';
+  status.textContent=n.status||'進行中';
+  const row=document.createElement('div');
+  row.className='node-main-row';
+  if(n.imageUrl){
+    const avatar=document.createElement('img');
+    avatar.className='node-avatar';
+    avatar.alt='';
+    avatar.loading='lazy';
+    setImageWithFallback(avatar,n.imageUrl,()=>avatar.classList.add('is-hidden'));
+    row.appendChild(avatar);
+  }
+  const text=document.createElement('div');
+  text.className='node-text';
+  const title=document.createElement('div');
+  title.className='node-title';
+  title.textContent=n.title;
+  text.appendChild(title);
+  if(n.note){
+    const note=document.createElement('div');
+    note.className='node-note';
+    note.textContent=n.note;
+    text.appendChild(note);
+  }
+  row.appendChild(text);
+  el.appendChild(tag);
+  el.appendChild(status);
+  el.appendChild(row);
   initNodeDrag(el,id);
   el.onclick=()=>{
     if(el.dataset.dragged==='1'){el.dataset.dragged='';return;}
@@ -590,14 +655,13 @@ function openDetail(id){
   const imageUrl=normalizeImageUrl(n.imageUrl);
   if(fallback){fallback.style.display='none';fallback.href=openableImageUrl(n.imageUrl||imageUrl);}
   if(imageUrl){
-    img.src=imageUrl;
     img.alt=n.title;
     img.style.display='';
     img.onclick=()=>openImage(n.imageUrl||imageUrl);
-    img.onerror=()=>{
+    setImageWithFallback(img,n.imageUrl||imageUrl,()=>{
       img.style.display='none';
       if(fallback)fallback.style.display='inline-block';
-    };
+    });
   }
   else{
     img.removeAttribute('src');

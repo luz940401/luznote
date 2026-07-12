@@ -154,6 +154,7 @@ const TAG_STYLE={
 const BASE_TYPES=['角色','城鎮','組織','物品'];
 function uid(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function attrEsc(s){return esc(s).replace(/'/g,'&#39;');}
 function nowIso(){return new Date().toISOString();}
 function setSyncStatus(state,text){
   const el=document.getElementById('sync-status');
@@ -166,6 +167,7 @@ function extractDriveFileId(url){
   const raw=(url||'').trim();
   if(!raw)return '';
   const patterns=[
+    /lh3\.googleusercontent\.com\/d\/([^/=?#]+)/,
     /drive\.google\.com\/file\/d\/([^/?#]+)/,
     /drive\.google\.com\/open\?id=([^&#]+)/,
     /drive\.google\.com\/uc\?id=([^&#]+)/,
@@ -178,9 +180,38 @@ function extractDriveFileId(url){
   return '';
 }
 function normalizeImageUrl(url){
+  return imageUrlCandidates(url)[0]||'';
+}
+function imageUrlCandidates(url){
   const raw=(url||'').trim();
+  if(!raw)return [];
   const id=extractDriveFileId(raw);
-  return id?`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`:raw;
+  const urls=[];
+  if(id){
+    const enc=encodeURIComponent(id);
+    urls.push(`https://lh3.googleusercontent.com/d/${enc}=w1200`);
+    urls.push(`https://drive.google.com/thumbnail?id=${enc}&sz=w1200`);
+    urls.push(`https://drive.google.com/uc?export=view&id=${enc}`);
+  }
+  urls.push(raw);
+  return [...new Set(urls)];
+}
+function retryImage(img,url){
+  const urls=imageUrlCandidates(url);
+  const next=Number(img.dataset.imageTry||0)+1;
+  if(next<urls.length){
+    img.dataset.imageTry=String(next);
+    img.src=urls[next];
+    return true;
+  }
+  return false;
+}
+function setImageWithFallback(img,url,onFail){
+  const urls=imageUrlCandidates(url);
+  if(!img||!urls.length){onFail&&onFail();return;}
+  img.dataset.imageTry='0';
+  img.onerror=()=>{if(!retryImage(img,url)){img.onerror=null;onFail&&onFail();}};
+  img.src=urls[0];
 }
 function openableImageUrl(url){
   const raw=(url||'').trim();
@@ -381,7 +412,10 @@ function setTypeValue(type){
 function updatePreview(){
   const img=document.getElementById('preview');
   const url=normalizeImageUrl(currentImage());
-  if(url){img.src=url;img.style.visibility='visible';}
+  if(url){
+    img.style.visibility='visible';
+    setImageWithFallback(img,currentImage(),()=>{img.style.visibility='hidden';});
+  }
   else{img.removeAttribute('src');img.style.visibility='hidden';}
 }
 function clearImage(){
@@ -458,7 +492,7 @@ function render(){
   cards.innerHTML=list.map(e=>{
     const ts=TAG_STYLE[e.type]||{bg:'#f0f0f0',color:'#666'};
     return `<article class="card">
-      ${e.imageUrl?`<a class="card-img-link" href="${esc(openableImageUrl(e.imageUrl))}" target="_blank" rel="noopener"><img src="${esc(e.imageUrl)}" alt="${esc(e.name)}" onerror="this.closest('.card-img-link').classList.add('image-error')"><span>圖片無法顯示，點此開啟原圖</span></a>`:''}
+      ${e.imageUrl?`<a class="card-img-link" href="${esc(openableImageUrl(e.imageUrl))}" target="_blank" rel="noopener"><img src="${esc(normalizeImageUrl(e.imageUrl))}" alt="${esc(e.name)}" data-image-source="${attrEsc(e.imageUrl)}" data-image-try="0" onerror="if(!retryImage(this,this.dataset.imageSource))this.closest('.card-img-link').classList.add('image-error')"><span>圖片無法顯示，點此開啟原圖</span></a>`:''}
       <div class="card-body">
         <span class="tag" style="background:${ts.bg};color:${ts.color}">${esc(e.type)}</span>
         <div class="name">${esc(e.name)}</div>

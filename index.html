@@ -568,6 +568,7 @@ function extractDriveFileId(url){
   const raw=(url||'').trim();
   if(!raw)return '';
   const patterns=[
+    /lh3\.googleusercontent\.com\/d\/([^/=?#]+)/,
     /drive\.google\.com\/file\/d\/([^/?#]+)/,
     /drive\.google\.com\/open\?id=([^&#]+)/,
     /drive\.google\.com\/uc\?id=([^&#]+)/,
@@ -580,9 +581,36 @@ function extractDriveFileId(url){
   return '';
 }
 function normalizeImageUrl(url){
+  return imageUrlCandidates(url)[0]||'';
+}
+function imageUrlCandidates(url){
   const raw=(url||'').trim();
+  if(!raw)return [];
   const id=extractDriveFileId(raw);
-  return id?`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`:raw;
+  const urls=[];
+  if(id){
+    const enc=encodeURIComponent(id);
+    urls.push(`https://lh3.googleusercontent.com/d/${enc}=w1200`);
+    urls.push(`https://drive.google.com/thumbnail?id=${enc}&sz=w1200`);
+    urls.push(`https://drive.google.com/uc?export=view&id=${enc}`);
+  }
+  urls.push(raw);
+  return [...new Set(urls)];
+}
+function setImageWithFallback(img,url,onFail){
+  const urls=imageUrlCandidates(url);
+  if(!img||!urls.length){onFail&&onFail();return;}
+  let index=0;
+  img.onerror=()=>{
+    index++;
+    if(index<urls.length){
+      img.src=urls[index];
+      return;
+    }
+    img.onerror=null;
+    onFail&&onFail();
+  };
+  img.src=urls[index];
 }
 function openableImageUrl(url){
   const raw=(url||'').trim();
@@ -806,7 +834,7 @@ function entityUid(){return 'e'+Date.now().toString(36)+Math.random().toString(3
 function normalizeEntities(list){
   return (Array.isArray(list)?list:[]).map(e=>({
     id:e.id||entityUid(),
-    name:e.name||e.title||'未命名詞條',
+    name:cleanEntityName(e.name||e.title)||'未命名詞條',
     type:e.type||'角色',
     note:e.note||'',
     granDate:normalizeGranDate(e.granDate||extractGranDateFromNote(e.note||'')),
@@ -1322,6 +1350,19 @@ function tagOpts(sel){
 }
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function attrEsc(s){return esc(s).replace(/'/g,'&#39;');}
+function cleanEntityName(value){
+  return (value||'')
+    .toString()
+    .normalize('NFKC')
+    .replace(/[\r\n\t]+/g,' ')
+    .replace(/\s+/g,' ')
+    .replace(/^[\s"'「」『』《》〈〉【】[\]()（）,，.。:：;；!?！？、]+/,'')
+    .replace(/[\s"'「」『』《》〈〉【】[\]()（）,，.。:：;；!?！？、]+$/,'')
+    .trim();
+}
+function entityNameKey(value){
+  return cleanEntityName(value).toLocaleLowerCase();
+}
 function buildImageBlock(imageUrl,title){
   const normalized=normalizeImageUrl(imageUrl);
   if(!normalized)return null;
@@ -1335,10 +1376,9 @@ function buildImageBlock(imageUrl,title){
   link.title='開啟圖片';
   const img=document.createElement('img');
   img.className='card-image';
-  img.src=normalized;
   img.alt=title||'';
   img.loading='lazy';
-  img.onerror=()=>wrap.classList.add('image-error');
+  setImageWithFallback(img,imageUrl||normalized,()=>wrap.classList.add('image-error'));
   link.appendChild(img);
   const fallback=document.createElement('a');
   fallback.className='image-fallback';
@@ -1356,8 +1396,8 @@ function mentionCandidates(skipId){
     .filter(n=>n.id!==skipId && ['NPC','地點','組織'].includes(n.tag) && n.title && n.title.trim().length>=2)
     .map(n=>({key:'node:'+n.id,name:n.title,type:n.tag,note:n.note,imageUrl:n.imageUrl,created:n.created,nodeId:n.id}));
   const glossaryEntries=entities
-    .filter(e=>e.name && e.name.trim().length>=2)
-    .map(e=>({key:'entity:'+e.id,name:e.name,type:e.type,note:e.note,imageUrl:e.imageUrl,created:e.created,entityId:e.id}));
+    .filter(e=>e.name && cleanEntityName(e.name).length>=1)
+    .map(e=>({key:'entity:'+e.id,name:cleanEntityName(e.name),type:e.type,note:e.note,imageUrl:e.imageUrl,created:e.created,entityId:e.id}));
   return [...nodeEntries,...glossaryEntries]
     .sort((a,b)=>b.name.length-a.name.length);
 }
@@ -1391,14 +1431,13 @@ function openEntityModal(id){
   const imageUrl=normalizeImageUrl(item.imageUrl);
   if(fallback){fallback.style.display='none';fallback.href=openableImageUrl(item.imageUrl||imageUrl);}
   if(imageUrl){
-    img.src=imageUrl;
     img.alt=item.name;
     img.style.display='';
     img.onclick=()=>openImage(item.imageUrl||imageUrl);
-    img.onerror=()=>{
+    setImageWithFallback(img,item.imageUrl||imageUrl,()=>{
       img.style.display='none';
       if(fallback)fallback.style.display='inline-flex';
-    };
+    });
   }
   else{
     img.removeAttribute('src');
@@ -1544,7 +1583,7 @@ function setEntityModalMode(editing){
 }
 
 function openQuickEntityModal(){
-  const name=selectedEntityText || window.getSelection().toString().trim();
+  const name=cleanEntityName(selectedEntityText || window.getSelection().toString());
   document.getElementById('qe-name').value=name;
   document.getElementById('qe-type').value='角色';
   document.getElementById('qe-custom-type').value='';
@@ -1566,14 +1605,15 @@ function quickEntityType(){
   return custom||'自訂';
 }
 function saveQuickEntity(){
-  const name=document.getElementById('qe-name').value.trim();
+  const name=cleanEntityName(document.getElementById('qe-name').value);
+  document.getElementById('qe-name').value=name;
   if(!name){alert('請輸入詞條名稱');return;}
   const type=quickEntityType();
   if(document.getElementById('qe-type').value==='__custom' && type==='自訂'){
     alert('請輸入自訂類型名稱');
     return;
   }
-  const existing=entities.find(e=>e.name===name);
+  const existing=entities.find(e=>entityNameKey(e.name)===entityNameKey(name));
   makeBackup(existing?'更新快速詞條前自動備份':'建立快速詞條前自動備份');
   const payload={
     id:existing?.id||entityUid(),
@@ -1586,10 +1626,12 @@ function saveQuickEntity(){
   };
   if(existing) Object.assign(existing,payload);
   else entities.push(payload);
+  saveEntities();
   document.getElementById('quick-entity-modal').classList.remove('open');
   selectedEntityText='';
   save();
   render();
+  alert(existing?`已更新既有詞條：${name}`:`已建立詞條：${name}`);
 }
 
 function buildEditForm(n){
@@ -1698,14 +1740,14 @@ document.addEventListener('mouseup',()=>{
   setTimeout(()=>{
     const btn=document.getElementById('quick-entity-btn');
     const sel=window.getSelection();
-    const text=sel.toString().trim();
+    const text=cleanEntityName(sel.toString());
     const anchor=sel.anchorNode?.nodeType===1?sel.anchorNode:sel.anchorNode?.parentElement;
-    if(!text || text.length<2 || !anchor?.closest?.('.card-note')){
+    if(!text || !anchor?.closest?.('.card-note')){
       btn.classList.remove('show');
       return;
     }
     const range=sel.getRangeAt(0).getBoundingClientRect();
-    selectedEntityText=text.slice(0,40);
+    selectedEntityText=text.slice(0,80);
     btn.style.left=Math.min(window.innerWidth-120,Math.max(8,range.left))+'px';
     btn.style.top=Math.max(8,range.top-42)+'px';
     btn.classList.add('show');
