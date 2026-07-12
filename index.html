@@ -43,8 +43,13 @@ header{
   .card-title{font-size:14px}
   .root-card .card-title{font-size:15px}
   .stats-bar{flex-wrap:wrap;gap:5px}
+  .filter-row .sel{width:100%;flex:1}
+  .recent-item{align-items:flex-start;flex-direction:column}
   .node-row{align-items:flex-start}
   .card-date{display:none}
+  .card-meta-line{padding:0 10px 10px 38px}
+  .gran-input{width:100%;min-width:0}
+  .gran-date-pill{max-width:100%}
   .card-head{gap:6px;padding:10px 10px}
 }
 
@@ -94,6 +99,22 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
 .stats-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:0 16px}
 .stat-item{font-size:12px;color:#999;background:#fff;border:1px solid #e8e3dc;border-radius:20px;padding:3px 12px}
 .stat-item strong{color:#666;font-weight:500}
+.filter-row{display:flex;gap:8px;align-items:center;margin:0 16px 14px;flex-wrap:wrap}
+.filter-row .sel{width:auto;min-width:120px;background:#fff}
+.recent-panel{margin:0 16px 16px;background:#fff;border:1px solid #e0dbd2;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.recent-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;color:#888;font-size:12px;font-weight:600;letter-spacing:.06em}
+.recent-list{display:flex;flex-direction:column;gap:6px}
+.recent-item{display:flex;align-items:center;gap:8px;width:100%;border:1px solid #eee8df;background:#faf8f4;border-radius:7px;padding:8px 10px;text-align:left;cursor:pointer;font-family:'Noto Sans TC',sans-serif;color:#333}
+.recent-item:hover{background:#f5f0e8;border-color:#d8cfc2}
+.recent-title{font-size:13px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.recent-meta{font-size:11px;color:#999;white-space:nowrap}
+.status-pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:.03em;flex-shrink:0}
+.backup-list{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow:auto;margin:12px 0}
+.backup-item{display:flex;gap:8px;align-items:center;border:1px solid #eee8df;border-radius:8px;padding:10px;background:#faf8f4}
+.backup-info{flex:1;min-width:0}
+.backup-title{font-size:13px;font-weight:600;color:#333;margin-bottom:3px}
+.backup-meta{font-size:11px;color:#999}
+.hint-text{font-size:11px;color:#9a8f82;line-height:1.5;margin-top:4px}
 
 /* ── Tree ── */
 .tree-scroll{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;padding:0 16px 16px;cursor:default}
@@ -120,6 +141,11 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
 .tag-pill{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;letter-spacing:.04em;flex-shrink:0}
 .card-title{font-size:15px;font-weight:600;flex:1;min-width:0;line-height:1.4;word-break:break-word;color:#111;letter-spacing:.01em}
 .card-date{font-size:11px;color:#bbb;flex-shrink:0}
+.gran-input{flex:0 1 190px;min-width:160px}
+.card-meta-line{display:flex;align-items:center;gap:6px;padding:0 14px 10px 43px;margin-top:-2px}
+.gran-date-pill{display:inline-flex;align-items:center;gap:6px;max-width:260px;border:1px solid #d8c8a8;background:#fffaf0;color:#6a4a14;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:600;white-space:nowrap}
+.gran-date-pill span{color:#a07628}
+.gran-date-pill strong{min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600;color:#4a3820}
 .root-card .card-title{font-size:16px;font-weight:700}
 .tree-toggle{font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid #e0dbd2;background:#f7f5f0;color:#999;cursor:pointer;transition:all .15s;white-space:nowrap;margin-left:2px;flex-shrink:0}
 .tree-toggle:hover{border-color:#c0b8a8;color:#666;background:#f0ece4}
@@ -127,6 +153,13 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
 .card-body{border-top:1px solid #ede8e0;padding:10px 14px 13px;display:none}
 .card-body.open{display:block}
 .card-note{font-size:14px;color:#2a2a2a;line-height:1.9;white-space:pre-wrap;word-break:break-word;font-family:'Noto Sans TC',sans-serif;font-weight:400}
+.mention-link{border:0;border-bottom:1px dotted #6a7f50;background:#f3f8e8;color:#405c24;border-radius:4px;padding:0 4px;font:inherit;cursor:pointer}
+.mention-link:hover{background:#e7f0d5;color:#213610}
+#quick-entity-btn{position:fixed;z-index:180;display:none;padding:7px 11px;border:1px solid #b8c8a0;border-radius:999px;background:#f6faef;color:#405c24;font-size:12px;box-shadow:0 6px 18px rgba(0,0,0,.14);cursor:pointer}
+#quick-entity-btn.show{display:block}
+.entity-card-img{width:100%;max-height:220px;object-fit:cover;border-radius:10px;border:1px solid #e0dbd2;margin:8px 0 12px;background:#f5f3ef}
+.entity-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.entity-note{font-size:14px;color:#333;line-height:1.8;white-space:pre-wrap;word-break:break-word}
 .edit-form{padding:2px 0 0;display:flex;flex-direction:column;gap:8px}
 .form-label{font-size:11px;color:#aaa;font-weight:500;letter-spacing:.06em;margin-bottom:3px}
 .form-row{display:flex;gap:8px;flex-wrap:wrap}
@@ -194,6 +227,7 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
 .card.drop-into{outline:2px dashed #7a9a6a;outline-offset:2px;background-color:#f3fbf5 !important}
 .node-wrap.drop-before::before{content:'';display:block;height:4px;background:#7a9a6a;border-radius:2px;margin-bottom:3px}
 .node-wrap.drop-after::after{content:'';display:block;height:4px;background:#7a9a6a;border-radius:2px;margin-top:3px}
+.node-wrap.focus-flash > .node-row .card{box-shadow:0 0 0 3px rgba(180,130,40,.24),0 4px 14px rgba(0,0,0,.10)}
 #root-drop-zone{
   min-height:44px;border:2px dashed #c8c0b0;border-radius:10px;
   display:none;align-items:center;justify-content:center;
@@ -216,6 +250,11 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
     <button class="hbtn accent" onclick="expandAll()">全開</button>
     <button class="hbtn accent" onclick="collapseAll()">全收</button>
     <div class="header-divider"></div>
+    <button class="hbtn" onclick="window.open('./entities.html','_blank')">詞條庫</button>
+    <button class="hbtn" onclick="window.open('./mindmap.html','_blank')">心智圖</button>
+    <button class="hbtn" onclick="window.open('./timeline.html','_blank')">格蘭歷大綱</button>
+    <button class="hbtn" onclick="syncNow()">同步</button>
+    <button class="hbtn" onclick="openBackupModal()">版本</button>
     <button class="hbtn" onclick="exportData()">匯出</button>
     <button class="hbtn" onclick="document.getElementById('imp').click()">匯入</button>
     <button class="hbtn red" onclick="document.getElementById('clr-modal').classList.add('open')">清除</button>
@@ -228,14 +267,33 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
     <div class="add-box-title">新增主線節點</div>
     <div class="add-row">
       <input class="inp" style="flex:1;min-width:140px" id="root-inp" placeholder="主線事件標題...">
+      <input class="inp gran-input" id="root-gran-date" inputmode="numeric" placeholder="格蘭歷年份，例如 1023年">
+      <select class="sel" id="root-template" onchange="applyRootTemplate()">
+        <option value="event">事件模板</option>
+        <option value="npc">NPC 模板</option>
+        <option value="location">地點模板</option>
+        <option value="item">物品模板</option>
+        <option value="quest">任務模板</option>
+        <option value="clue">線索模板</option>
+        <option value="secret">秘密模板</option>
+      </select>
       <select class="sel" id="root-tag">
         <option value="事件">⚡ 事件</option>
         <option value="NPC">👤 NPC</option>
         <option value="地點">🗺 地點</option>
         <option value="物品">📦 物品</option>
         <option value="任務">📜 任務</option>
+        <option value="組織">🏰 組織</option>
         <option value="秘密">🔒 秘密</option>
         <option value="線索">🔎 線索</option>
+      </select>
+      <select class="sel" id="root-status">
+        <option value="進行中">進行中</option>
+        <option value="待處理">待處理</option>
+        <option value="伏筆">伏筆</option>
+        <option value="未揭露">未揭露</option>
+        <option value="已揭露">已揭露</option>
+        <option value="已完成">已完成</option>
       </select>
       <button class="btn pri" onclick="addRoot()">＋ 新增</button>
     </div>
@@ -249,11 +307,37 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
     <button class="search-clear" id="search-clear" onclick="clearSearch()" title="清除搜尋">✕</button>
   </div>
   <div class="search-results-info" id="search-info" style="display:none"></div>
+  <div class="filter-row">
+    <select class="sel" id="type-filter" onchange="onFilterChange()">
+      <option value="">全部類型</option>
+      <option value="事件">事件</option>
+      <option value="NPC">NPC</option>
+      <option value="地點">地點</option>
+      <option value="物品">物品</option>
+      <option value="任務">任務</option>
+      <option value="組織">組織</option>
+      <option value="秘密">秘密</option>
+      <option value="線索">線索</option>
+    </select>
+    <select class="sel" id="status-filter" onchange="onFilterChange()">
+      <option value="">全部狀態</option>
+      <option value="進行中">進行中</option>
+      <option value="待處理">待處理</option>
+      <option value="伏筆">伏筆</option>
+      <option value="未揭露">未揭露</option>
+      <option value="已揭露">已揭露</option>
+      <option value="已完成">已完成</option>
+    </select>
+  </div>
 
   <div class="stats-bar">
     <span class="stat-item"><strong id="s-count">0</strong> 則筆記</span>
     <span class="stat-item"><strong id="s-roots">0</strong> 條主線</span>
     <span class="stat-item" id="s-sync-time" style="display:none">上次同步 <strong id="s-sync-label">—</strong></span>
+  </div>
+  <div class="recent-panel" id="recent-panel" style="display:none">
+    <div class="recent-head">最近編輯</div>
+    <div class="recent-list" id="recent-list"></div>
   </div>
 
   <div class="tree-scroll" id="tree-scroll">
@@ -262,6 +346,7 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
   <div id="root-drop-zone">⬆ 拖曳到這裡，升為主線節點</div>
 </main>
 <div id="drag-ghost"></div>
+<button id="quick-entity-btn" onclick="openQuickEntityModal()">＋ 建立詞條</button>
 
 <!-- 清除確認 Modal -->
 <div class="modal-bg" id="clr-modal">
@@ -287,6 +372,81 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
   </div>
 </div>
 
+<!-- 詞條卡片 Modal -->
+<div class="modal-bg" id="entity-modal">
+  <div class="modal">
+    <h3 id="entity-title">詞條</h3>
+    <div class="entity-meta">
+      <span class="tag-pill" id="entity-tag"></span>
+      <span class="card-date" id="entity-date"></span>
+    </div>
+    <img class="entity-card-img" id="entity-img" alt="" style="display:none">
+    <div class="entity-note" id="entity-note"></div>
+    <div class="edit-form" id="entity-edit-form" style="display:none;margin-top:12px">
+      <div class="form-row">
+        <div class="form-group"><div class="form-label">名稱</div><input class="inp" id="entity-edit-name"></div>
+        <div class="form-group" style="flex:0;min-width:110px"><div class="form-label">類型</div><select class="sel" id="entity-edit-type">
+          <option value="角色">角色</option>
+          <option value="NPC">NPC</option>
+          <option value="城鎮">城鎮</option>
+          <option value="地點">地點</option>
+          <option value="組織">組織</option>
+          <option value="物品">物品</option>
+          <option value="任務">任務</option>
+          <option value="秘密">秘密</option>
+          <option value="線索">線索</option>
+        </select></div>
+      </div>
+      <div class="form-group"><div class="form-label">Google Drive 圖片連結</div><input class="inp" id="entity-edit-img" placeholder="貼上 Google Drive 分享連結或圖片網址"><div class="hint-text">Drive 圖片請設定為「知道連結的任何人可查看」。</div></div>
+      <div class="form-group"><div class="form-label">描述內容</div><textarea class="inp" id="entity-edit-note" placeholder="外觀、立場、關係、劇情描述..."></textarea></div>
+    </div>
+    <div class="modal-btns" style="margin-top:16px">
+      <button class="btn ghost" onclick="document.getElementById('entity-modal').classList.remove('open')">關閉</button>
+      <button class="btn" id="entity-sync-btn" style="display:none">同步詞條庫</button>
+      <button class="btn pri" id="entity-edit-btn">編輯</button>
+    </div>
+  </div>
+</div>
+
+<!-- 快速新增詞條 Modal -->
+<div class="modal-bg" id="quick-entity-modal">
+  <div class="modal">
+    <h3>建立詞條卡片</h3>
+    <div class="edit-form">
+      <div class="form-row">
+        <div class="form-group"><div class="form-label">名稱</div><input class="inp" id="qe-name" placeholder="角色、城鎮、組織名稱"></div>
+        <div class="form-group" style="flex:0;min-width:110px"><div class="form-label">類型</div><select class="sel" id="qe-type">
+          <option value="角色">角色</option>
+          <option value="城鎮">城鎮</option>
+          <option value="組織">組織</option>
+          <option value="物品">物品</option>
+          <option value="__custom">自訂</option>
+        </select></div>
+      </div>
+      <div class="form-group" id="qe-custom-wrap" style="display:none"><div class="form-label">自訂類型</div><input class="inp" id="qe-custom-type" placeholder="例如：神祇、派系、怪物"></div>
+      <div class="form-group"><div class="form-label">Google Drive 圖片連結</div><input class="inp" id="qe-img" placeholder="貼上 Google Drive 分享連結或圖片網址"></div>
+      <div class="form-group"><div class="form-label">小備註</div><textarea class="inp" id="qe-note" placeholder="外觀、立場、關係、第一次登場..."></textarea></div>
+      <div class="modal-btns">
+        <button class="btn ghost" onclick="document.getElementById('quick-entity-modal').classList.remove('open')">取消</button>
+        <button class="btn pri" onclick="saveQuickEntity()">儲存詞條</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 版本還原 Modal -->
+<div class="modal-bg" id="backup-modal">
+  <div class="modal">
+    <h3>版本歷史</h3>
+    <p>系統會在刪除、匯入、快速建立詞條與還原前保留本機版本。</p>
+    <div class="backup-list" id="backup-list"></div>
+    <div class="modal-btns">
+      <button class="btn ghost" onclick="document.getElementById('backup-modal').classList.remove('open')">關閉</button>
+      <button class="btn" onclick="makeBackup('手動建立版本');openBackupModal()">建立版本</button>
+    </div>
+  </div>
+</div>
+
 <!-- 設定雲端 URL Modal -->
 <div class="modal-bg" id="url-modal">
   <div class="modal">
@@ -294,7 +454,7 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
     <p>請先完成以下步驟：</p>
     <ol>
       <li>開啟 <strong>Google Apps Script</strong>（script.google.com）</li>
-      <li>建立新專案，貼上 <code>Code.gs</code> 的內容</li>
+      <li>建立新專案，貼上 <code>google-apps-script/Code.gs.example</code> 的內容</li>
       <li>點選上方「部署 &gt; 新增部署」</li>
       <li>類型選「<strong>網頁應用程式</strong>」</li>
       <li>執行身分：「<strong>我</strong>」，存取權：「<strong>所有人</strong>」</li>
@@ -330,22 +490,118 @@ const PALETTE=[
 const TAG_STYLE={
   '事件':{bg:'rgba(220,140,60,.12)',  color:'#a05010'},
   'NPC' :{bg:'rgba(100,80,200,.12)',  color:'#4030a0'},
+  '角色':{bg:'rgba(100,80,200,.12)',  color:'#4030a0'},
   '地點':{bg:'rgba(40,140,100,.12)',  color:'#1a7858'},
+  '城鎮':{bg:'rgba(40,140,100,.12)',  color:'#1a7858'},
   '物品':{bg:'rgba(180,140,30,.12)',  color:'#907010'},
   '任務':{bg:'rgba(50,120,220,.12)',  color:'#2050a0'},
+  '組織':{bg:'rgba(120,70,35,.12)',   color:'#704018'},
   '秘密':{bg:'rgba(150,60,150,.12)',  color:'#7a2a7a'},
   '線索':{bg:'rgba(20,160,180,.12)',  color:'#0a7a90'},
 };
 
-let nodes={},rootIds=[],nextId=1,editingId=null,addingChildOf=null;
+const NODE_STATUSES=['進行中','待處理','伏筆','未揭露','已揭露','已完成'];
+const STATUS_STYLE={
+  '進行中':{bg:'rgba(50,120,220,.12)',color:'#2050a0'},
+  '待處理':{bg:'rgba(220,140,60,.14)',color:'#a05010'},
+  '伏筆':{bg:'rgba(150,60,150,.12)',color:'#7a2a7a'},
+  '未揭露':{bg:'rgba(80,80,80,.12)',color:'#555'},
+  '已揭露':{bg:'rgba(40,140,100,.12)',color:'#1a7858'},
+  '已完成':{bg:'rgba(70,150,90,.16)',color:'#2d7040'},
+};
+const NODE_TEMPLATES={
+  event:{label:'事件',tag:'事件',status:'進行中',note:'場景：\n參與者：\n發生了什麼：\n結果：\n下一步：'},
+  npc:{label:'NPC',tag:'NPC',status:'未揭露',note:'外觀：\n個性：\n立場：\n知道的秘密：\n與玩家關係：'},
+  location:{label:'地點',tag:'地點',status:'進行中',note:'位置：\n氛圍：\n重要人物：\n可探索線索：\n危險：'},
+  item:{label:'物品',tag:'物品',status:'未揭露',note:'外觀：\n來源：\n效果：\n目前持有人：\n隱藏資訊：'},
+  quest:{label:'任務',tag:'任務',status:'待處理',note:'目標：\n委託人：\n阻礙：\n獎勵：\n完成條件：'},
+  clue:{label:'線索',tag:'線索',status:'伏筆',note:'線索內容：\n指向：\n誰知道：\n何時揭露：'},
+  secret:{label:'秘密',tag:'秘密',status:'未揭露',note:'真相：\n相關人物：\n揭露條件：\n揭露後影響：'}
+};
+const APP_VERSION=4;
+const APP_KEY='adventure-notes-v1';
+const LEGACY_APP_KEY='dnd-v3';
+const ENTITIES_KEY='adventure-notes-entities-v1';
+const LEGACY_ENTITIES_KEY='dnd-entities';
+const BACKUP_PREFIX='adventure-notes-backup-';
+const LEGACY_BACKUP_PREFIX='dnd-backup-';
+const DIRTY_KEY='adventure-notes-dirty';
+const GS_URL_KEY = 'adventure-notes-gs-url';
+const LEGACY_GS_URL_KEY = 'dnd-gs-url';
+
+let nodes={},rootIds=[],nextId=1,editingId=null,addingChildOf=null,entities=[];
+let selectedEntityText='';
+let activeEntityKey='';
+let dataUpdatedAt='';
+let typeFilter='',statusFilter='';
 
 // ─────────────────────────────────────────────
 //  雲端同步（Google Apps Script）
 // ─────────────────────────────────────────────
-const GS_URL_KEY = 'dnd-gs-url';
-let gsUrl = localStorage.getItem(GS_URL_KEY) || '';
+let gsUrl = localStorage.getItem(GS_URL_KEY) || localStorage.getItem(LEGACY_GS_URL_KEY) || '';
+if(gsUrl && !localStorage.getItem(GS_URL_KEY))localStorage.setItem(GS_URL_KEY,gsUrl);
 let syncTimer = null;
 let lastSyncTime = null;
+
+function nowIso(){return new Date().toISOString();}
+function touchData(){
+  dataUpdatedAt=nowIso();
+  localStorage.setItem(APP_KEY+'-updatedAt',dataUpdatedAt);
+}
+function markDirty(){localStorage.setItem(DIRTY_KEY,'1');}
+function clearDirty(){localStorage.removeItem(DIRTY_KEY);}
+function hasUnsyncedChanges(){return localStorage.getItem(DIRTY_KEY)==='1';}
+function extractDriveFileId(url){
+  const raw=(url||'').trim();
+  if(!raw)return '';
+  const patterns=[
+    /drive\.google\.com\/file\/d\/([^/?#]+)/,
+    /drive\.google\.com\/open\?id=([^&#]+)/,
+    /drive\.google\.com\/uc\?id=([^&#]+)/,
+    /[?&]id=([^&#]+)/
+  ];
+  for(const p of patterns){
+    const m=raw.match(p);
+    if(m&&m[1])return decodeURIComponent(m[1]);
+  }
+  return '';
+}
+function normalizeImageUrl(url){
+  const raw=(url||'').trim();
+  const id=extractDriveFileId(raw);
+  return id?`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`:raw;
+}
+function formatDateTime(value){
+  if(!value)return '';
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return value;
+  const mo=(d.getMonth()+1).toString().padStart(2,'0');
+  const da=d.getDate().toString().padStart(2,'0');
+  const h=d.getHours().toString().padStart(2,'0');
+  const m=d.getMinutes().toString().padStart(2,'0');
+  return `${mo}/${da} ${h}:${m}`;
+}
+function normalizeGranDate(value){
+  const raw=(value||'').toString().trim();
+  if(!raw)return '';
+  const m=raw.match(/-?\d+/);
+  return m?`${m[0]}年`:raw;
+}
+function extractGranDateFromNote(note){
+  const m=(note||'').match(/^格蘭[歷曆][：:]\s*(.+)$/m);
+  return m?normalizeGranDate(m[1]):'';
+}
+function syncGranDateToNote(note,granDate){
+  const value=normalizeGranDate(granDate);
+  const text=(note||'').replace(/\r\n/g,'\n');
+  const lineRe=/^格蘭[歷曆][：:][^\n]*(?:\n|$)/m;
+  if(!value)return text.replace(lineRe,'').replace(/^\n/,'');
+  const line=`格蘭歷：${value}`;
+  if(lineRe.test(text)){
+    return text.replace(lineRe,match=>line+(match.endsWith('\n')?'\n':''));
+  }
+  return line+(text?'\n'+text:'');
+}
 
 function setSyncStatus(state, text) {
   const el = document.getElementById('sync-status');
@@ -360,25 +616,37 @@ function setSyncStatus(state, text) {
   tx.textContent = text;
 }
 
-async function cloudLoad() {
+async function cloudLoad(options={}) {
   if (!gsUrl) return false;
   setSyncStatus('saving', '載入中…');
   try {
     const res = await fetch(gsUrl, { method: 'GET' });
     const json = await res.json();
     if (json.ok && json.data) {
-      const d = JSON.parse(json.data);
-      nodes = d.nodes || {};
-      rootIds = d.rootIds || [];
-      nextId = d.nextId || 1;
+      const d = validateData(JSON.parse(json.data));
+      const cloudUpdatedAt = d.updatedAt || json.updatedAt || '';
+      if(options.promptConflict!==false && hasUnsyncedChanges() && dataUpdatedAt && cloudUpdatedAt && new Date(dataUpdatedAt) > new Date(cloudUpdatedAt)){
+        const useCloud = confirm('本機有尚未同步的變更，而且比雲端更新。按「確定」載入雲端；按「取消」保留本機並上傳。');
+        if(!useCloud){
+          setSyncStatus('saving','保留本機並上傳…');
+          scheduleCloudSave(50);
+          return false;
+        }
+      }
+      makeBackup('雲端載入前自動備份');
+      nodes = d.nodes;
+      rootIds = d.rootIds;
+      nextId = d.nextId;
+      entities = d.entities.length ? d.entities : loadStoredEntities();
+      dataUpdatedAt = cloudUpdatedAt || nowIso();
+      saveEntities();
       Object.values(nodes).forEach(n => {
-        if (n.ci === undefined) n.ci = 0;
-        if (n.open === undefined) n.open = false;
-        if (n.expanded === undefined) n.expanded = true;
-        if (n.treeOpen === undefined) n.treeOpen = true;
+        normalizeNode(n);
       });
+      ensureDataIntegrity();
       lastSyncTime = new Date();
       updateSyncTimeDisplay();
+      clearDirty();
       setSyncStatus('ok', '已同步');
       return true;
     } else if (json.ok && !json.data) {
@@ -394,17 +662,21 @@ async function cloudLoad() {
   }
 }
 
-function scheduleCloudSave() {
-  if (!gsUrl) return;
+function scheduleCloudSave(delay=1200) {
+  if (!gsUrl) {
+    setSyncStatus('no-url', '已暫存本機');
+    return;
+  }
+  markDirty();
   setSyncStatus('saving', '儲存中…');
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(doCloudSave, 1200); // 1.2秒防抖
+  syncTimer = setTimeout(doCloudSave, delay);
 }
 
 async function doCloudSave() {
   if (!gsUrl) return;
   try {
-    const value = JSON.stringify({ nodes, rootIds, nextId });
+    const value = JSON.stringify(currentData());
     const params = new URLSearchParams();
     params.append('value', value);
     const res = await fetch(gsUrl, {
@@ -413,8 +685,11 @@ async function doCloudSave() {
     });
     const json = await res.json();
     if (json.ok) {
+      if(json.updatedAt)dataUpdatedAt=json.updatedAt;
       lastSyncTime = new Date();
       updateSyncTimeDisplay();
+      localSave();
+      clearDirty();
       setSyncStatus('ok', '已同步');
     } else {
       setSyncStatus('err', '儲存失敗');
@@ -445,8 +720,8 @@ async function saveGsUrl() {
   gsUrl = val;
   localStorage.setItem(GS_URL_KEY, gsUrl);
   document.getElementById('url-modal').classList.remove('open');
-  const loaded = await cloudLoad();
-  if (loaded) { save(); render(); }
+  const loaded = await cloudLoad({promptConflict:false});
+  if (loaded) { localSave(); render(); }
   else {
     // 雲端空的，把本地資料推上去
     scheduleCloudSave();
@@ -457,44 +732,117 @@ function clearGsUrl() {
   if (!confirm('確定要移除雲端連結嗎？資料仍保留在本機。')) return;
   gsUrl = '';
   localStorage.removeItem(GS_URL_KEY);
+  localStorage.removeItem(LEGACY_GS_URL_KEY);
   setSyncStatus('no-url', '未連結雲端');
   document.getElementById('url-modal').classList.remove('open');
+}
+
+async function syncNow(){
+  if(!gsUrl){openUrlModal();return;}
+  if(hasUnsyncedChanges()){
+    setSyncStatus('saving','立即同步…');
+    await doCloudSave();
+  }else{
+    const loaded=await cloudLoad({promptConflict:false});
+    if(loaded){localSave();render();}
+  }
 }
 
 // ─────────────────────────────────────────────
 //  本機存取（保留作備援）
 // ─────────────────────────────────────────────
 function localSave(){
-  localStorage.setItem('dnd-v3', JSON.stringify({nodes, rootIds, nextId}));
+  const data=currentData();
+  localStorage.setItem(APP_KEY, JSON.stringify(data));
+  localStorage.setItem(LEGACY_APP_KEY, JSON.stringify(data));
+  saveEntities();
 }
 
-function save(){
+function save(options={touch:true}){
+  if(options.touch)touchData();
   localSave();
   scheduleCloudSave();
 }
 
 function load(){
   try{
-    const d=localStorage.getItem('dnd-v3');
+    const d=localStorage.getItem(APP_KEY)||localStorage.getItem(LEGACY_APP_KEY);
     if(d){
       const p=JSON.parse(d);
-      nodes=p.nodes||{};rootIds=p.rootIds||[];nextId=p.nextId||1;
+      nodes=p.nodes||{};rootIds=p.rootIds||[];nextId=p.nextId||1;entities=normalizeEntities(p.entities||loadStoredEntities());
+      dataUpdatedAt=p.updatedAt||localStorage.getItem(APP_KEY+'-updatedAt')||nowIso();
       Object.values(nodes).forEach(n=>{
-        if(n.ci===undefined)n.ci=0;
-        if(n.open===undefined)n.open=false;
-        if(n.expanded===undefined)n.expanded=true;
-        if(n.treeOpen===undefined)n.treeOpen=true;
+        normalizeNode(n);
       });
-    } else seed();
+      ensureDataIntegrity();
+    } else { entities=loadStoredEntities(); seed(); }
   }catch(e){seed();}
 }
 
 function uid(){return 'n'+(nextId++);}
-function mk(title,note,tag,parentId,ci){
+function entityUid(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function normalizeEntities(list){
+  return (Array.isArray(list)?list:[]).map(e=>({
+    id:e.id||entityUid(),
+    name:e.name||e.title||'未命名詞條',
+    type:e.type||'角色',
+    note:e.note||'',
+    granDate:normalizeGranDate(e.granDate||extractGranDateFromNote(e.note||'')),
+    imageUrl:normalizeImageUrl(e.imageUrl||''),
+    created:e.created||new Date().toLocaleDateString('zh-TW')
+  }));
+}
+function loadStoredEntities(){
+  try{return normalizeEntities(JSON.parse(localStorage.getItem(ENTITIES_KEY)||localStorage.getItem(LEGACY_ENTITIES_KEY)||'[]'));}
+  catch{return [];}
+}
+function saveEntities(){
+  localStorage.setItem(ENTITIES_KEY, JSON.stringify(entities));
+  localStorage.setItem(LEGACY_ENTITIES_KEY, JSON.stringify(entities));
+}
+function normalizeNode(n){
+  if(!Array.isArray(n.children))n.children=[];
+  if(!n.title)n.title='未命名節點';
+  if(n.note===undefined)n.note='';
+  if(n.granDate===undefined)n.granDate=extractGranDateFromNote(n.note);
+  n.granDate=normalizeGranDate(n.granDate);
+  if(n.granDate)n.note=syncGranDateToNote(n.note,n.granDate);
+  if(!n.tag)n.tag='事件';
+  if(n.ci===undefined)n.ci=0;
+  if(n.open===undefined)n.open=false;
+  if(n.expanded===undefined)n.expanded=true;
+  if(n.treeOpen===undefined)n.treeOpen=true;
+  if(n.imageUrl===undefined)n.imageUrl='';
+  n.imageUrl=normalizeImageUrl(n.imageUrl);
+  if(!n.status)n.status='進行中';
+  if(!n.created)n.created=new Date().toLocaleDateString('zh-TW');
+  if(!n.updatedAt)n.updatedAt=dataUpdatedAt||nowIso();
+}
+function ensureDataIntegrity(){
+  rootIds=rootIds.filter(id=>nodes[id]);
+  Object.values(nodes).forEach(n=>{
+    normalizeNode(n);
+    n.children=n.children.filter(id=>nodes[id]&&id!==n.id);
+    n.children.forEach(cid=>{nodes[cid].parentId=n.id;});
+  });
+  Object.values(nodes).forEach(n=>{
+    if(!n.parentId&&!rootIds.includes(n.id))rootIds.push(n.id);
+  });
+  const maxId=Object.keys(nodes).reduce((max,id)=>{
+    const num=Number(String(id).replace(/^n/,''));
+    return Number.isFinite(num)?Math.max(max,num):max;
+  },0);
+  nextId=Math.max(nextId,maxId+1);
+}
+function mk(title,note,tag,parentId,ci,imageUrl,status,granDate){
   const id=uid();
+  const gd=normalizeGranDate(granDate)||extractGranDateFromNote(note);
   nodes[id]={id,title,note:note||'',tag:tag||'事件',parentId:parentId||null,
     children:[],expanded:true,open:false,treeOpen:true,ci:ci!==undefined?ci:0,
-    created:new Date().toLocaleDateString('zh-TW')};
+    imageUrl:normalizeImageUrl(imageUrl||''),status:status||'進行中',
+    granDate:gd,
+    created:new Date().toLocaleDateString('zh-TW'),updatedAt:nowIso()};
+  nodes[id].note=syncGranDateToNote(nodes[id].note,gd);
   return id;
 }
 
@@ -529,13 +877,32 @@ function buildSw(id,cur,cb){
   });
 }
 function initRootSw(){buildSw('root-sw',rootCi,i=>{rootCi=i;initRootSw();});}
+function templateOpts(sel){
+  return Object.entries(NODE_TEMPLATES).map(([key,t])=>`<option value="${key}"${key===sel?' selected':''}>${t.label}模板</option>`).join('');
+}
+function statusOpts(sel){
+  return NODE_STATUSES.map(s=>`<option value="${s}"${s===sel?' selected':''}>${s}</option>`).join('');
+}
+function applyRootTemplate(){
+  const tpl=NODE_TEMPLATES[document.getElementById('root-template').value]||NODE_TEMPLATES.event;
+  document.getElementById('root-tag').value=tpl.tag;
+  document.getElementById('root-status').value=tpl.status;
+}
+function touchNode(n){
+  n.updatedAt=nowIso();
+  touchData();
+}
 
 function addRoot(){
   const t=document.getElementById('root-inp').value.trim();if(!t)return;
-  const tag=document.getElementById('root-tag').value;
-  const id=mk(t,'',tag,null,rootCi);
+  const tpl=NODE_TEMPLATES[document.getElementById('root-template').value]||NODE_TEMPLATES.event;
+  const tag=document.getElementById('root-tag').value||tpl.tag;
+  const status=document.getElementById('root-status').value||tpl.status;
+  const granDate=normalizeGranDate(document.getElementById('root-gran-date').value);
+  const id=mk(t,tpl.note,tag,null,rootCi,'',status,granDate);
   rootIds.push(id);
   document.getElementById('root-inp').value='';
+  document.getElementById('root-gran-date').value='';
   save();render();
 }
 
@@ -556,6 +923,7 @@ function confirmDelete(){
   const id = pendingDeleteId;
   pendingDeleteId = null;
   document.getElementById('del-modal').classList.remove('open');
+  makeBackup('刪除節點前自動備份');
   function dt(nid){nodes[nid].children.forEach(c=>dt(c));delete nodes[nid];}
   const n=nodes[id];
   if(n.parentId)nodes[n.parentId].children=nodes[n.parentId].children.filter(c=>c!==id);
@@ -567,6 +935,7 @@ function confirmDelete(){
 }
 
 function clearAll(){
+  makeBackup('清除所有資料前自動備份');
   nodes={};rootIds=[];nextId=1;editingId=null;addingChildOf=null;
   save();document.getElementById('clr-modal').classList.remove('open');render();
 }
@@ -580,28 +949,118 @@ function collapseAll(){
   save();render();
 }
 
-function exportData(){
-  const b=new Blob([JSON.stringify({nodes,rootIds,nextId},null,2)],{type:'application/json'});
+function currentData(){
+  return {appVersion:APP_VERSION,nodes,rootIds,nextId,entities,updatedAt:dataUpdatedAt||nowIso()};
+}
+function validateData(d){
+  if(!d || typeof d!=='object')throw new Error('資料不是有效的 JSON 物件');
+  if(d.nodes && (typeof d.nodes!=='object' || Array.isArray(d.nodes)))throw new Error('nodes 格式不正確');
+  if(d.rootIds && !Array.isArray(d.rootIds))throw new Error('rootIds 格式不正確');
+  if(d.entities && !Array.isArray(d.entities))throw new Error('entities 格式不正確');
+  const out={
+    nodes:d.nodes||{},
+    rootIds:d.rootIds||[],
+    nextId:Number.isFinite(Number(d.nextId))?Number(d.nextId):1,
+    entities:normalizeEntities(d.entities||[]),
+    updatedAt:d.updatedAt||''
+  };
+  Object.values(out.nodes).forEach(n=>normalizeNode(n));
+  return out;
+}
+function backupKey(){
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+  return BACKUP_PREFIX+stamp;
+}
+function makeBackup(reason){
+  try{
+    const key=backupKey();
+    localStorage.setItem(key,JSON.stringify({reason,created:new Date().toISOString(),data:currentData()}));
+    const keys=Object.keys(localStorage).filter(k=>k.startsWith(BACKUP_PREFIX)).sort();
+    while(keys.length>8)localStorage.removeItem(keys.shift());
+  }catch(e){
+    console.warn('備份失敗',e);
+  }
+}
+function downloadData(data,prefix){
+  const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);
-  a.download='dnd-notes-'+new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')+'.json';a.click();
+  a.download=prefix+'-'+new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')+'.json';a.click();
+  URL.revokeObjectURL(a.href);
+}
+function exportData(){
+  downloadData(currentData(),'dnd-notes');
 }
 function importData(e){
   const f=e.target.files[0];if(!f)return;
   const r=new FileReader();
   r.onload=ev=>{
     try{
-      const d=JSON.parse(ev.target.result);
-      nodes=d.nodes||{};rootIds=d.rootIds||[];nextId=d.nextId||1;
-      Object.values(nodes).forEach(n=>{
-        if(n.ci===undefined)n.ci=0;
-        if(n.open===undefined)n.open=false;
-        if(n.expanded===undefined)n.expanded=true;
-        if(n.treeOpen===undefined)n.treeOpen=true;
-      });
+      const d=validateData(JSON.parse(ev.target.result));
+      makeBackup('匯入前自動備份');
+      nodes=d.nodes;rootIds=d.rootIds;nextId=d.nextId;entities=d.entities;
+      dataUpdatedAt=d.updatedAt||nowIso();
+      saveEntities();
+      ensureDataIntegrity();
       save();render();
-    }catch{alert('匯入失敗：格式不正確');}
+      alert('匯入完成。已先保留一份本機自動備份。');
+    }catch(err){alert('匯入失敗：'+(err.message||'格式不正確'));}
   };
   r.readAsText(f);e.target.value='';
+}
+
+function listBackups(){
+  return Object.keys(localStorage)
+    .filter(k=>k.startsWith(BACKUP_PREFIX)||k.startsWith(LEGACY_BACKUP_PREFIX))
+    .sort()
+    .reverse()
+    .map(key=>{
+      try{
+        const item=JSON.parse(localStorage.getItem(key));
+        return {key,reason:item.reason||'未命名版本',created:item.created||'',data:item.data};
+      }catch{return null;}
+    })
+    .filter(Boolean);
+}
+function openBackupModal(){
+  const list=document.getElementById('backup-list');
+  const backups=listBackups();
+  if(!backups.length){
+    list.innerHTML='<div class="empty" style="padding:28px 16px">目前沒有可還原的版本。</div>';
+  }else{
+    list.innerHTML='';
+    backups.forEach(b=>{
+      const row=document.createElement('div');
+      row.className='backup-item';
+      const info=document.createElement('div');
+      info.className='backup-info';
+      info.innerHTML=`<div class="backup-title">${esc(b.reason)}</div><div class="backup-meta">${esc(formatDateTime(b.created)||b.created)}</div>`;
+      const btn=document.createElement('button');
+      btn.className='btn sm';
+      btn.textContent='還原';
+      btn.onclick=()=>restoreBackup(b.key);
+      row.appendChild(info);
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+  }
+  document.getElementById('backup-modal').classList.add('open');
+}
+function restoreBackup(key){
+  if(!confirm('確定要還原這個版本嗎？目前資料會先自動備份。'))return;
+  try{
+    const raw=JSON.parse(localStorage.getItem(key));
+    const d=validateData(raw.data||raw);
+    makeBackup('還原前自動備份');
+    nodes=d.nodes;rootIds=d.rootIds;nextId=d.nextId;entities=d.entities;
+    dataUpdatedAt=d.updatedAt||nowIso();
+    ensureDataIntegrity();
+    save();
+    document.getElementById('backup-modal').classList.remove('open');
+    render();
+    alert('已還原版本，並排程同步到雲端。');
+  }catch(e){
+    alert('還原失敗：'+(e.message||'版本資料格式不正確'));
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -618,19 +1077,25 @@ function render(){
   } else {
     rootIds.forEach(id=>tree.appendChild(rNode(id,0)));
   }
+  renderRecent();
   // Apply search filter after render
-  if(searchQuery){
+  if(searchQuery||typeFilter||statusFilter){
     let matchCount=0;
     function nodeMatches(id){
       const n=nodes[id];
       const q=searchQuery;
-      return n.title.toLowerCase().includes(q)||
+      const matchesText=!q||n.title.toLowerCase().includes(q)||
              n.note.toLowerCase().includes(q)||
-             n.tag.toLowerCase().includes(q);
+             n.tag.toLowerCase().includes(q)||
+             (n.granDate||'').toLowerCase().includes(q)||
+             (n.status||'').toLowerCase().includes(q);
+      const matchesType=!typeFilter||n.tag===typeFilter;
+      const matchesStatus=!statusFilter||n.status===statusFilter;
+      return matchesText&&matchesType&&matchesStatus;
     }
     function hasMatchInTree(id){
       if(nodeMatches(id))return true;
-      return nodes[id].children.some(c=>hasMatchInTree(c));
+      return (nodes[id].children||[]).some(c=>nodes[c]&&hasMatchInTree(c));
     }
     document.querySelectorAll('.node-wrap').forEach(el=>{
       const id=el.dataset.id;if(!id)return;
@@ -640,10 +1105,14 @@ function render(){
         matchCount++;
         // Highlight title
         const titleEl=el.querySelector('.card-title');
-        if(titleEl)titleEl.innerHTML=highlightText(nodes[id].title,searchQuery);
+        if(titleEl&&searchQuery)titleEl.innerHTML=highlightText(nodes[id].title,searchQuery);
         // Highlight note
         const noteEl=el.querySelector('.card-note');
-        if(noteEl)noteEl.innerHTML=highlightText(nodes[id].note,searchQuery);
+        if(noteEl&&searchQuery)noteEl.innerHTML=highlightText(nodes[id].note,searchQuery);
+        const granEl=el.querySelector('.gran-date-value');
+        if(granEl&&searchQuery&&(nodes[id].granDate||'').toLowerCase().includes(searchQuery)){
+          granEl.innerHTML=highlightText(nodes[id].granDate,searchQuery);
+        }
       }
     });
     const info=document.getElementById('search-info');
@@ -652,10 +1121,59 @@ function render(){
   }
 }
 
+function renderRecent(){
+  const panel=document.getElementById('recent-panel');
+  const list=document.getElementById('recent-list');
+  const recent=Object.values(nodes)
+    .filter(n=>n.updatedAt)
+    .sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt))
+    .slice(0,5);
+  if(!recent.length){panel.style.display='none';return;}
+  panel.style.display='';
+  list.innerHTML='';
+  recent.forEach(n=>{
+    const btn=document.createElement('button');
+    btn.className='recent-item';
+    const granMeta=n.granDate?` · 格蘭歷 ${esc(n.granDate)}`:'';
+    btn.innerHTML=`<span class="recent-title">${esc(n.title)}</span><span class="recent-meta">${esc(n.tag)} · ${esc(n.status||'進行中')}${granMeta} · ${esc(formatDateTime(n.updatedAt))}</span>`;
+    btn.onclick=()=>focusNode(n.id);
+    list.appendChild(btn);
+  });
+}
+
+function focusNode(id){
+  const n=nodes[id];if(!n)return;
+  let cur=n;
+  while(cur?.parentId&&nodes[cur.parentId]){
+    nodes[cur.parentId].expanded=true;
+    nodes[cur.parentId].treeOpen=true;
+    cur=nodes[cur.parentId];
+  }
+  n.open=true;
+  render();
+  setTimeout(()=>{
+    const el=document.querySelector(`[data-id="${id}"]`);
+    if(!el)return;
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+    el.classList.add('focus-flash');
+    setTimeout(()=>el.classList.remove('focus-flash'),1500);
+  },50);
+}
+function hashNodeId(){
+  const raw=decodeURIComponent((location.hash||'').replace(/^#/,''));
+  const m=raw.match(/^(?:node[-=:]?)?(n[\w-]+)$/);
+  return m?m[1]:'';
+}
+function focusNodeFromHash(){
+  const id=hashNodeId();
+  if(id&&nodes[id])focusNode(id);
+}
+
 function rNode(id,depth){
   const n=nodes[id];
   const pal=PALETTE[n.ci]||PALETTE[0];
   const ts=TAG_STYLE[n.tag]||{bg:'#f0f0f0',color:'#666'};
+  const ss=STATUS_STYLE[n.status]||{bg:'#f0f0f0',color:'#666'};
   const isRoot=depth===0;
   const wrap=document.createElement('div');wrap.className='node-wrap';
   wrap.dataset.id=id;wrap.dataset.depth=depth;
@@ -687,6 +1205,9 @@ function rNode(id,depth){
   const tagpill=document.createElement('span');tagpill.className='tag-pill';
   tagpill.style.background=ts.bg;tagpill.style.color=ts.color;
   tagpill.textContent=n.tag;head.appendChild(tagpill);
+  const statusPill=document.createElement('span');statusPill.className='status-pill';
+  statusPill.style.background=ss.bg;statusPill.style.color=ss.color;
+  statusPill.textContent=n.status||'進行中';head.appendChild(statusPill);
   const titleEl=document.createElement('span');titleEl.className='card-title';
   if(searchQuery&&n.title.toLowerCase().includes(searchQuery)){
     titleEl.innerHTML=highlightText(n.title,searchQuery);
@@ -694,7 +1215,7 @@ function rNode(id,depth){
     titleEl.textContent=n.title;
   }
   head.appendChild(titleEl);
-  const dateEl=document.createElement('span');dateEl.className='card-date';dateEl.textContent=n.created;
+  const dateEl=document.createElement('span');dateEl.className='card-date';dateEl.textContent=formatDateTime(n.updatedAt)||n.created;
   head.appendChild(dateEl);
   if(isRoot && n.children.length>0){
     const tog=document.createElement('button');
@@ -726,10 +1247,25 @@ function rNode(id,depth){
   acts.appendChild(aAdd);acts.appendChild(aEd);acts.appendChild(aDel);
   head.appendChild(acts);
   card.appendChild(head);
+  if(n.granDate){
+    const meta=document.createElement('div');
+    meta.className='card-meta-line';
+    const gran=document.createElement('span');
+    gran.className='gran-date-pill';
+    const label=document.createElement('span');
+    label.textContent='格蘭歷';
+    const value=document.createElement('strong');
+    value.className='gran-date-value';
+    value.textContent=n.granDate;
+    gran.appendChild(label);
+    gran.appendChild(value);
+    meta.appendChild(gran);
+    card.appendChild(meta);
+  }
   const body=document.createElement('div');
   body.className='card-body'+((n.open||editingId===id)?' open':'');
   if(editingId===id){body.appendChild(buildEditForm(n));}
-  else if(n.note){const noteEl=document.createElement('div');noteEl.className='card-note';noteEl.textContent=n.note;body.appendChild(noteEl);}
+  else if(n.note){const noteEl=document.createElement('div');noteEl.className='card-note';noteEl.innerHTML=linkMentions(n.note,id);body.appendChild(noteEl);}
   card.appendChild(body);
   main.appendChild(card);
   if(addingChildOf===id)main.appendChild(buildChildForm(id));
@@ -746,14 +1282,227 @@ function rNode(id,depth){
 
 function countDescendants(id){
   let count=0;
-  function walk(nid){nodes[nid].children.forEach(c=>{count++;walk(c);});}
+  function walk(nid){(nodes[nid]?.children||[]).forEach(c=>{if(nodes[c]){count++;walk(c);}});}
   walk(id);return count;
 }
 
 function tagOpts(sel){
-  return ['事件','NPC','地點','物品','任務','秘密','線索'].map(t=>`<option value="${t}"${t===sel?' selected':''}>${t}</option>`).join('');
+  return ['事件','NPC','地點','物品','任務','組織','秘密','線索'].map(t=>`<option value="${t}"${t===sel?' selected':''}>${t}</option>`).join('');
 }
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function attrEsc(s){return esc(s).replace(/'/g,'&#39;');}
+
+function mentionCandidates(skipId){
+  const nodeEntries=Object.values(nodes)
+    .filter(n=>n.id!==skipId && ['NPC','地點','組織'].includes(n.tag) && n.title && n.title.trim().length>=2)
+    .map(n=>({key:'node:'+n.id,name:n.title,type:n.tag,note:n.note,imageUrl:n.imageUrl,created:n.created,nodeId:n.id}));
+  const glossaryEntries=entities
+    .filter(e=>e.name && e.name.trim().length>=2)
+    .map(e=>({key:'entity:'+e.id,name:e.name,type:e.type,note:e.note,imageUrl:e.imageUrl,created:e.created,entityId:e.id}));
+  return [...nodeEntries,...glossaryEntries]
+    .sort((a,b)=>b.name.length-a.name.length);
+}
+function linkMentions(text,skipId){
+  const candidates=mentionCandidates(skipId);
+  if(!candidates.length)return esc(text);
+  const pattern=new RegExp(candidates.map(n=>n.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
+  let out='',last=0;
+  text.replace(pattern,(match,offset)=>{
+    const item=candidates.find(n=>n.name===match);
+    if(!item)return match;
+    out+=esc(text.slice(last,offset));
+    out+=`<button class="mention-link" onclick="openEntityModal('${attrEsc(item.key)}')" title="查看 ${attrEsc(item.name)}">${esc(match)}</button>`;
+    last=offset+match.length;
+    return match;
+  });
+  out+=esc(text.slice(last));
+  return out;
+}
+
+function openEntityModal(id){
+  const item=getEntityLike(id);if(!item)return;
+  activeEntityKey=id;
+  const ts=TAG_STYLE[item.type]||{bg:'#f0f0f0',color:'#666'};
+  document.getElementById('entity-title').textContent=item.name;
+  const tag=document.getElementById('entity-tag');
+  tag.textContent=item.type;tag.style.background=ts.bg;tag.style.color=ts.color;
+  document.getElementById('entity-date').textContent=item.granDate?`格蘭歷 ${item.granDate}`:(item.created||'');
+  const img=document.getElementById('entity-img');
+  const imageUrl=normalizeImageUrl(item.imageUrl);
+  if(imageUrl){img.src=imageUrl;img.alt=item.name;img.style.display='';}
+  else{img.removeAttribute('src');img.style.display='none';}
+  document.getElementById('entity-note').textContent=item.note||'尚未填寫備註。';
+  document.getElementById('entity-edit-name').value=item.name||'';
+  document.getElementById('entity-edit-type').value=[...document.getElementById('entity-edit-type').options].some(o=>o.value===item.type)?item.type:'角色';
+  document.getElementById('entity-edit-img').value=item.imageUrl||'';
+  document.getElementById('entity-edit-note').value=item.note||'';
+  const editBtn=document.getElementById('entity-edit-btn');
+  const syncBtn=document.getElementById('entity-sync-btn');
+  syncBtn.style.display=item.nodeId?'':'none';
+  syncBtn.onclick=()=>syncActiveNodeToEntity();
+  setEntityModalMode(false);
+  editBtn.onclick=()=>toggleEntityEdit();
+  document.getElementById('entity-modal').classList.add('open');
+}
+
+function toggleEntityEdit(){
+  const form=document.getElementById('entity-edit-form');
+  if(form.style.display==='none'||!form.style.display){
+    setEntityModalMode(true);
+    document.getElementById('entity-edit-name').focus();
+  }else{
+    saveEntityModalEdit();
+  }
+}
+
+function saveEntityModalEdit(){
+  const item=getEntityLike(activeEntityKey);if(!item)return;
+  const name=document.getElementById('entity-edit-name').value.trim();
+  if(!name){alert('請輸入名稱');return;}
+  const type=document.getElementById('entity-edit-type').value;
+  const imageUrl=normalizeImageUrl(document.getElementById('entity-edit-img').value);
+  const note=document.getElementById('entity-edit-note').value;
+  makeBackup('彈窗編輯前自動備份');
+  if(item.nodeId){
+    const n=nodes[item.nodeId];
+    n.title=name;
+    n.tag=entityTypeToNodeTag(type);
+    n.granDate=extractGranDateFromNote(note)||normalizeGranDate(item.granDate);
+    n.note=syncGranDateToNote(note,n.granDate);
+    n.imageUrl=imageUrl;
+    touchNode(n);
+    syncNodeToEntity(n);
+  }else if(item.entityId){
+    const e=entities.find(x=>x.id===item.entityId);
+    if(e)Object.assign(e,{name,type,imageUrl,note,granDate:extractGranDateFromNote(note)||normalizeGranDate(e.granDate)});
+    saveEntities();
+  }
+  save({touch:false});
+  setEntityModalMode(false);
+  openEntityModal(activeEntityKey);
+  render();
+}
+
+function syncActiveNodeToEntity(){
+  const item=getEntityLike(activeEntityKey);
+  if(!item?.nodeId)return;
+  const n=nodes[item.nodeId];
+  makeBackup('同步詞條庫前自動備份');
+  syncNodeToEntity(n);
+  save({touch:false});
+  alert('已同步到詞條庫。');
+}
+
+function getEntityLike(key){
+  if(!key)return null;
+  if(key.startsWith('node:')){
+    const id=key.slice(5),n=nodes[id];
+    return n?{name:n.title,type:n.tag,note:n.note,granDate:n.granDate,imageUrl:n.imageUrl,created:n.created,nodeId:id}:null;
+  }
+  if(key.startsWith('entity:')){
+    const e=entities.find(x=>x.id===key.slice(7));
+    return e?{name:e.name,type:e.type,note:e.note,granDate:e.granDate,imageUrl:e.imageUrl,created:e.created,entityId:e.id}:null;
+  }
+  const n=nodes[key];
+  return n?{name:n.title,type:n.tag,note:n.note,granDate:n.granDate,imageUrl:n.imageUrl,created:n.created,nodeId:key}:null;
+}
+
+function nodeEntityType(tag){
+  if(tag==='NPC')return '角色';
+  if(tag==='地點')return '城鎮';
+  if(['角色','城鎮','組織','物品'].includes(tag))return tag;
+  return tag||'角色';
+}
+function entityTypeToNodeTag(type){
+  if(type==='角色')return 'NPC';
+  if(type==='城鎮')return '地點';
+  return type||'事件';
+}
+function shouldSyncNodeToEntity(n){
+  return !!n?.entityId||['NPC','地點','組織','物品','角色','城鎮'].includes(n?.tag);
+}
+function findLinkedEntityForNode(n){
+  if(!n)return null;
+  if(n.entityId){
+    const linked=entities.find(e=>e.id===n.entityId);
+    if(linked)return linked;
+  }
+  return entities.find(e=>e.name===n.title)||null;
+}
+function syncNodeToEntity(n){
+  if(!n)return null;
+  const existing=findLinkedEntityForNode(n);
+  const payload={
+    id:existing?.id||entityUid(),
+    name:n.title,
+    type:nodeEntityType(n.tag),
+    imageUrl:normalizeImageUrl(n.imageUrl||''),
+    note:n.note||'',
+    granDate:normalizeGranDate(n.granDate),
+    sourceNodeId:n.id,
+    created:existing?.created||n.created||new Date().toLocaleDateString('zh-TW')
+  };
+  if(existing)Object.assign(existing,payload);
+  else entities.push(payload);
+  n.entityId=payload.id;
+  saveEntities();
+  return payload;
+}
+function setEntityModalMode(editing){
+  document.getElementById('entity-img').style.display=editing?'none':document.getElementById('entity-img').style.display;
+  document.getElementById('entity-note').style.display=editing?'none':'';
+  document.getElementById('entity-edit-form').style.display=editing?'':'none';
+  document.getElementById('entity-edit-btn').textContent=editing?'儲存':'編輯';
+}
+
+function openQuickEntityModal(){
+  const name=selectedEntityText || window.getSelection().toString().trim();
+  document.getElementById('qe-name').value=name;
+  document.getElementById('qe-type').value='角色';
+  document.getElementById('qe-custom-type').value='';
+  toggleQuickCustomType();
+  document.getElementById('qe-note').value='';
+  document.getElementById('qe-img').value='';
+  document.getElementById('quick-entity-btn').classList.remove('show');
+  document.getElementById('quick-entity-modal').classList.add('open');
+  setTimeout(()=>document.getElementById(name?'qe-note':'qe-name').focus(),30);
+}
+
+function toggleQuickCustomType(){
+  const isCustom=document.getElementById('qe-type').value==='__custom';
+  document.getElementById('qe-custom-wrap').style.display=isCustom?'':'none';
+}
+function quickEntityType(){
+  if(document.getElementById('qe-type').value!=='__custom')return document.getElementById('qe-type').value;
+  const custom=document.getElementById('qe-custom-type').value.trim();
+  return custom||'自訂';
+}
+function saveQuickEntity(){
+  const name=document.getElementById('qe-name').value.trim();
+  if(!name){alert('請輸入詞條名稱');return;}
+  const type=quickEntityType();
+  if(document.getElementById('qe-type').value==='__custom' && type==='自訂'){
+    alert('請輸入自訂類型名稱');
+    return;
+  }
+  const existing=entities.find(e=>e.name===name);
+  makeBackup(existing?'更新快速詞條前自動備份':'建立快速詞條前自動備份');
+  const payload={
+    id:existing?.id||entityUid(),
+    name,
+    type,
+    imageUrl:normalizeImageUrl(document.getElementById('qe-img').value),
+    note:document.getElementById('qe-note').value,
+    granDate:extractGranDateFromNote(document.getElementById('qe-note').value),
+    created:existing?.created||new Date().toLocaleDateString('zh-TW')
+  };
+  if(existing) Object.assign(existing,payload);
+  else entities.push(payload);
+  document.getElementById('quick-entity-modal').classList.remove('open');
+  selectedEntityText='';
+  save();
+  render();
+}
 
 function buildEditForm(n){
   const ef=document.createElement('div');ef.className='edit-form';ef.onclick=e=>e.stopPropagation();
@@ -761,8 +1510,11 @@ function buildEditForm(n){
   ef.innerHTML=`
     <div class="form-row">
       <div class="form-group"><div class="form-label">標題</div><input class="inp" id="ef-t-${n.id}" value="${esc(n.title)}" placeholder="節點標題"></div>
+      <div class="form-group" style="flex:0;min-width:170px"><div class="form-label">格蘭歷年份</div><input class="inp" id="ef-gran-${n.id}" inputmode="numeric" value="${esc(n.granDate||'')}" placeholder="例如 1023年"></div>
       <div class="form-group" style="flex:0;min-width:90px"><div class="form-label">類型</div><select class="sel" id="ef-tag-${n.id}">${tagOpts(n.tag)}</select></div>
+      <div class="form-group" style="flex:0;min-width:100px"><div class="form-label">狀態</div><select class="sel" id="ef-status-${n.id}">${statusOpts(n.status||'進行中')}</select></div>
     </div>
+    <div class="form-group"><div class="form-label">Google Drive 圖片連結</div><input class="inp" id="ef-img-${n.id}" value="${esc(n.imageUrl||'')}" placeholder="貼上 Google Drive 分享連結或圖片網址"><div class="hint-text">Drive 檔案權限需設為「知道連結的任何人可查看」。</div></div>
     <div class="form-group"><div class="form-label">筆記內容</div><textarea class="inp" id="ef-n-${n.id}" placeholder="詳細記錄...">${esc(n.note)}</textarea></div>
     <div><div class="form-label">節點顏色</div><div class="swatches" id="${swId}"></div></div>
     <div class="form-btns">
@@ -774,12 +1526,22 @@ function buildEditForm(n){
     function rb(i){ci=i;buildSw(swId,i,rb);}
     buildSw(swId,ci,rb);
     const sv=document.getElementById('ef-sv-'+n.id);
+    const granInput=document.getElementById('ef-gran-'+n.id);
+    const noteInput=document.getElementById('ef-n-'+n.id);
+    if(granInput&&noteInput){
+      granInput.addEventListener('input',()=>{noteInput.value=syncGranDateToNote(noteInput.value,granInput.value);});
+    }
     if(sv)sv.onclick=e=>{
       e.stopPropagation();
       n.title=document.getElementById('ef-t-'+n.id).value||n.title;
-      n.note=document.getElementById('ef-n-'+n.id).value;
+      n.granDate=normalizeGranDate(document.getElementById('ef-gran-'+n.id).value);
+      n.note=syncGranDateToNote(document.getElementById('ef-n-'+n.id).value,n.granDate);
       n.tag=document.getElementById('ef-tag-'+n.id).value;
-      n.ci=ci;editingId=null;save();render();
+      n.status=document.getElementById('ef-status-'+n.id).value;
+      n.imageUrl=normalizeImageUrl(document.getElementById('ef-img-'+n.id).value);
+      n.ci=ci;touchNode(n);
+      if(shouldSyncNodeToEntity(n))syncNodeToEntity(n);
+      editingId=null;save({touch:false});render();
     };
   },0);
   return ef;
@@ -791,8 +1553,12 @@ function buildChildForm(pid){
   cf.innerHTML=`
     <div class="form-row">
       <div class="form-group"><div class="form-label">子節點標題</div><input class="inp" id="cf-t-${pid}" placeholder="輸入子事件..."></div>
+      <div class="form-group" style="flex:0;min-width:170px"><div class="form-label">格蘭歷年份</div><input class="inp" id="cf-gran-${pid}" inputmode="numeric" value="${esc(nodes[pid].granDate||'')}" placeholder="例如 1023年"></div>
+      <div class="form-group" style="flex:0;min-width:110px"><div class="form-label">模板</div><select class="sel" id="cf-template-${pid}">${templateOpts('event')}</select></div>
       <div class="form-group" style="flex:0;min-width:90px"><div class="form-label">類型</div><select class="sel" id="cf-tag-${pid}">${tagOpts('事件')}</select></div>
+      <div class="form-group" style="flex:0;min-width:100px"><div class="form-label">狀態</div><select class="sel" id="cf-status-${pid}">${statusOpts('進行中')}</select></div>
     </div>
+    <div class="form-group"><div class="form-label">Google Drive 圖片連結（可選）</div><input class="inp" id="cf-img-${pid}" placeholder="貼上 Google Drive 分享連結或圖片網址"></div>
     <div class="form-group"><div class="form-label">筆記（可選）</div><textarea class="inp" id="cf-n-${pid}" placeholder="詳細記錄..."></textarea></div>
     <div><div class="form-label">節點顏色</div><div class="swatches" id="${swId}"></div></div>
     <div class="form-btns">
@@ -804,12 +1570,30 @@ function buildChildForm(pid){
     function rb(i){ci=i;buildSw(swId,i,rb);}
     buildSw(swId,ci,rb);
     const ab=document.getElementById('cf-add-'+pid);
+    const tplSel=document.getElementById('cf-template-'+pid);
+    const granInput=document.getElementById('cf-gran-'+pid);
+    const noteInput=document.getElementById('cf-n-'+pid);
+    if(granInput&&noteInput){
+      granInput.addEventListener('input',()=>{noteInput.value=syncGranDateToNote(noteInput.value,granInput.value);});
+    }
+    if(tplSel)tplSel.onchange=()=>{
+      const tpl=NODE_TEMPLATES[tplSel.value]||NODE_TEMPLATES.event;
+      document.getElementById('cf-tag-'+pid).value=tpl.tag;
+      document.getElementById('cf-status-'+pid).value=tpl.status;
+      const noteEl=document.getElementById('cf-n-'+pid);
+      if(!noteEl.value.trim())noteEl.value=tpl.note;
+      noteEl.value=syncGranDateToNote(noteEl.value,document.getElementById('cf-gran-'+pid).value);
+    };
+    if(tplSel)tplSel.onchange();
     if(ab)ab.onclick=e=>{
       e.stopPropagation();
       const t=document.getElementById('cf-t-'+pid).value.trim();if(!t)return;
-      const note=document.getElementById('cf-n-'+pid).value;
+      const granDate=normalizeGranDate(document.getElementById('cf-gran-'+pid).value);
+      const note=syncGranDateToNote(document.getElementById('cf-n-'+pid).value,granDate);
       const tag=document.getElementById('cf-tag-'+pid).value;
-      const nid=mk(t,note,tag,pid,ci);
+      const status=document.getElementById('cf-status-'+pid).value;
+      const imageUrl=normalizeImageUrl(document.getElementById('cf-img-'+pid).value);
+      const nid=mk(t,note,tag,pid,ci,imageUrl,status,granDate);
       nodes[pid].children.push(nid);nodes[pid].expanded=true;
       addingChildOf=null;save();render();
     };
@@ -820,6 +1604,28 @@ function buildChildForm(pid){
 }
 
 document.getElementById('root-inp').addEventListener('keydown',e=>{if(e.key==='Enter')addRoot();});
+document.getElementById('root-gran-date').addEventListener('keydown',e=>{if(e.key==='Enter')addRoot();});
+window.addEventListener('hashchange',()=>setTimeout(focusNodeFromHash,0));
+document.addEventListener('mouseup',()=>{
+  setTimeout(()=>{
+    const btn=document.getElementById('quick-entity-btn');
+    const sel=window.getSelection();
+    const text=sel.toString().trim();
+    const anchor=sel.anchorNode?.nodeType===1?sel.anchorNode:sel.anchorNode?.parentElement;
+    if(!text || text.length<2 || !anchor?.closest?.('.card-note')){
+      btn.classList.remove('show');
+      return;
+    }
+    const range=sel.getRangeAt(0).getBoundingClientRect();
+    selectedEntityText=text.slice(0,40);
+    btn.style.left=Math.min(window.innerWidth-120,Math.max(8,range.left))+'px';
+    btn.style.top=Math.max(8,range.top-42)+'px';
+    btn.classList.add('show');
+  },0);
+});
+document.addEventListener('mousedown',e=>{
+  if(!e.target.closest('#quick-entity-btn'))document.getElementById('quick-entity-btn').classList.remove('show');
+});
 
 // ─────────────────────────────────────────────
 //  漢堡選單（手機）
@@ -856,11 +1662,17 @@ function clearSearch(){
   document.getElementById('search-inp').value='';
   searchQuery='';
   document.getElementById('search-clear').classList.remove('show');
-  document.getElementById('search-info').style.display='none';
+  if(!typeFilter&&!statusFilter)document.getElementById('search-info').style.display='none';
   renderSearch();
 }
+function onFilterChange(){
+  typeFilter=document.getElementById('type-filter').value;
+  statusFilter=document.getElementById('status-filter').value;
+  render();
+  if(!searchQuery&&!typeFilter&&!statusFilter)document.getElementById('search-info').style.display='none';
+}
 function renderSearch(){
-  if(!searchQuery){
+  if(!searchQuery&&!typeFilter&&!statusFilter){
     document.getElementById('search-info').style.display='none';
     document.querySelectorAll('.node-wrap').forEach(el=>el.classList.remove('search-hidden'));
     // Remove highlights
@@ -1045,7 +1857,7 @@ function isDescendant(ancestorId, checkId) {
   // Is checkId a descendant of ancestorId?
   function walk(nid) {
     if (nid === checkId) return true;
-    return nodes[nid].children.some(c => walk(c));
+    return (nodes[nid]?.children||[]).some(c => nodes[c]&&walk(c));
   }
   return walk(ancestorId);
 }
@@ -1085,14 +1897,17 @@ function moveNode(id, targetId, mode) {
     else arr.splice(tgtIdx + 1, 0, id);
   }
 
-  save(); render();
+  touchNode(srcNode);
+  save({touch:false}); render();
 }
 
 // ─────────────────────────────────────────────
 //  啟動
 // ─────────────────────────────────────────────
 async function init() {
+  document.getElementById('qe-type').addEventListener('change',toggleQuickCustomType);
   load(); // 先讀本地快取，立刻顯示
+  applyRootTemplate();
   initRootSw();
   render();
 
@@ -1106,6 +1921,7 @@ async function init() {
   } else {
     setSyncStatus('no-url', '未連結雲端');
   }
+  setTimeout(focusNodeFromHash,80);
 }
 
 init();

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冒險記錄｜詞條庫</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:#f0ede8;color:#1a1a1a;min-height:100vh}
+header{background:#fff;border-bottom:2px solid #e0dbd2;padding:12px 20px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.logo{font-family:'Noto Serif TC',serif;font-size:17px;font-weight:500;flex:1;letter-spacing:.04em}
+.logo em{font-family:'Noto Sans TC',sans-serif;font-style:normal;color:#aaa;font-size:11px;margin-left:8px}
+.btn{padding:8px 14px;font-size:13px;border:1px solid #ddd;border-radius:7px;background:#fff;color:#333;cursor:pointer;text-decoration:none;font-family:'Noto Sans TC',sans-serif;white-space:nowrap}
+.btn:hover{background:#f6f4f0;border-color:#c8c0b4}
+.btn.pri{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn.red{color:#c04040;border-color:#efc0c0;background:#fff7f7}
+.sync-status{display:flex;align-items:center;gap:5px;font-size:11px;padding:5px 10px;border:1px solid #e0dbd2;border-radius:999px;background:#faf8f4;color:#999}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#ccc}
+.sync-status.ok{color:#3a7a5a;border-color:#b8e0c8;background:#f3fbf5}
+.sync-status.ok .sync-dot{background:#4a9a6a}
+.sync-status.saving{color:#a07020;border-color:#e8d4a0;background:#fffbf0}
+.sync-status.saving .sync-dot{background:#e0a040}
+.sync-status.err{color:#a03030;border-color:#f0c0c0;background:#fff5f5}
+.sync-status.err .sync-dot{background:#d05050}
+main{max-width:980px;margin:0 auto;padding:24px 16px 80px}
+.panel{background:#fff;border:1px solid #e0dbd2;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.04);margin-bottom:18px}
+.panel-title{font-size:12px;color:#999;font-weight:600;letter-spacing:.08em;margin-bottom:12px}
+.form-grid{display:grid;grid-template-columns:1fr 130px;gap:10px}
+.form-full{grid-column:1/-1}
+.inp,.sel{width:100%;background:#f7f5f2;border:1px solid #e0dbd4;border-radius:7px;color:#1a1a1a;font-family:'Noto Sans TC',sans-serif;font-size:14px;padding:9px 12px;outline:none}
+.inp:focus,.sel:focus{border-color:#a09070;background:#fff}
+textarea.inp{min-height:92px;resize:vertical;line-height:1.7}
+.label{font-size:11px;color:#aaa;font-weight:500;letter-spacing:.06em;margin-bottom:4px}
+.field{display:flex;flex-direction:column}
+.avatar-row{display:flex;gap:10px;align-items:flex-start}
+.avatar-preview{width:88px;height:88px;border-radius:10px;border:1px solid #ded6ca;background:#f6f3ed;object-fit:cover;flex-shrink:0}
+.file-line{display:flex;gap:8px;flex-wrap:wrap}
+.file-line input[type=file]{font-size:12px;color:#777}
+.hint{font-size:12px;color:#9a8f82;line-height:1.5;margin-top:6px}
+.actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+.toolbar .inp{max-width:340px;background:#fff}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.card{background:#fff;border:1px solid #e0dbd2;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.card img{width:100%;height:135px;object-fit:cover;background:#f5f3ef;border-bottom:1px solid #e8e2d8}
+.card-body{padding:12px}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#f0ece5;color:#6b5c4c;margin-bottom:7px}
+.name{font-size:16px;font-weight:700;line-height:1.35;margin-bottom:6px;word-break:break-word}
+.note{font-size:13px;color:#625a50;line-height:1.6;white-space:pre-wrap;word-break:break-word;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;min-height:20px}
+.card-actions{display:flex;gap:6px;margin-top:12px}
+.empty{text-align:center;padding:52px 20px;color:#bbb;border:1px dashed #d8d0c5;border-radius:12px;background:#faf8f4}
+@media(max-width:640px){
+  header{flex-wrap:wrap;padding:10px 12px}
+  .logo{width:100%;flex:auto}
+  .form-grid{grid-template-columns:1fr}
+  .avatar-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">詞條庫 <em>角色、組織、城鎮</em></div>
+  <div class="sync-status" id="sync-status"><span class="sync-dot"></span><span id="sync-text">讀取中</span></div>
+  <a class="btn" href="./index.html">返回筆記</a>
+  <a class="btn" href="./mindmap.html">心智圖</a>
+</header>
+
+<main>
+  <section class="panel">
+    <div class="panel-title" id="form-title">新增詞條</div>
+    <div class="form-grid">
+      <div class="field">
+        <div class="label">名稱</div>
+        <input class="inp" id="name" placeholder="例如：Talia、醉龍鎮、銀焰教團">
+      </div>
+      <div class="field">
+        <div class="label">類型</div>
+        <select class="sel" id="type">
+          <option value="角色">角色</option>
+          <option value="城鎮">城鎮</option>
+          <option value="組織">組織</option>
+          <option value="物品">物品</option>
+          <option value="__custom">自訂</option>
+        </select>
+      </div>
+      <div class="field form-full" id="custom-type-wrap" style="display:none">
+        <div class="label">自訂類型</div>
+        <input class="inp" id="custom-type" placeholder="例如：神祇、派系、怪物、家族">
+      </div>
+      <div class="field form-full">
+        <div class="label">Google Drive 圖片 / 頭像</div>
+        <div class="avatar-row">
+          <img class="avatar-preview" id="preview" alt="">
+          <div style="flex:1">
+            <input class="inp" id="image-url" placeholder="貼上 Google Drive 分享連結或圖片網址">
+            <div class="file-line" style="margin-top:8px">
+              <button class="btn" onclick="clearImage()" type="button">清除圖片</button>
+            </div>
+            <div class="hint" id="image-hint">建議使用 Google Drive 圖片分享連結，權限設為「知道連結的任何人可查看」。</div>
+          </div>
+        </div>
+      </div>
+      <div class="field form-full">
+        <div class="label">小備註</div>
+        <textarea class="inp" id="note" placeholder="外觀、個性、陣營、與玩家關係、第一次登場、重要秘密..."></textarea>
+      </div>
+      <div class="actions form-full">
+        <button class="btn" onclick="resetForm()">取消</button>
+        <button class="btn pri" onclick="saveEntry()">儲存詞條</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="toolbar">
+      <input class="inp" id="search" placeholder="搜尋詞條..." oninput="render()">
+      <select class="sel" id="filter" style="max-width:130px" onchange="render()">
+        <option value="">全部</option>
+        <option value="角色">角色</option>
+        <option value="城鎮">城鎮</option>
+        <option value="組織">組織</option>
+        <option value="物品">物品</option>
+      </select>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+</main>
+
+<script>
+let entries=[],editingId=null;
+const DATA_KEY='adventure-notes-entities-v1';
+const LEGACY_DATA_KEY='dnd-entities';
+const APP_KEY='adventure-notes-v1';
+const LEGACY_APP_KEY='dnd-v3';
+const BACKUP_PREFIX='adventure-notes-backup-';
+const LEGACY_BACKUP_PREFIX='dnd-backup-';
+const GS_URL_KEY='adventure-notes-gs-url';
+const LEGACY_GS_URL_KEY='dnd-gs-url';
+let gsUrl=localStorage.getItem(GS_URL_KEY)||localStorage.getItem(LEGACY_GS_URL_KEY)||'';
+if(gsUrl&&!localStorage.getItem(GS_URL_KEY))localStorage.setItem(GS_URL_KEY,gsUrl);
+let syncTimer=null;
+const TAG_STYLE={
+  '角色':{bg:'rgba(100,80,200,.12)',color:'#4030a0'},
+  '城鎮':{bg:'rgba(40,140,100,.12)',color:'#1a7858'},
+  '組織':{bg:'rgba(120,70,35,.12)',color:'#704018'},
+  '物品':{bg:'rgba(180,140,30,.12)',color:'#907010'}
+};
+const BASE_TYPES=['角色','城鎮','組織','物品'];
+function uid(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function nowIso(){return new Date().toISOString();}
+function setSyncStatus(state,text){
+  const el=document.getElementById('sync-status');
+  const tx=document.getElementById('sync-text');
+  if(!el||!tx)return;
+  el.className='sync-status '+state;
+  tx.textContent=text;
+}
+function extractDriveFileId(url){
+  const raw=(url||'').trim();
+  if(!raw)return '';
+  const patterns=[
+    /drive\.google\.com\/file\/d\/([^/?#]+)/,
+    /drive\.google\.com\/open\?id=([^&#]+)/,
+    /drive\.google\.com\/uc\?id=([^&#]+)/,
+    /[?&]id=([^&#]+)/
+  ];
+  for(const p of patterns){
+    const m=raw.match(p);
+    if(m&&m[1])return decodeURIComponent(m[1]);
+  }
+  return '';
+}
+function normalizeImageUrl(url){
+  const raw=(url||'').trim();
+  const id=extractDriveFileId(raw);
+  return id?`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`:raw;
+}
+function readLocalApp(){
+  try{return JSON.parse(localStorage.getItem(APP_KEY)||localStorage.getItem(LEGACY_APP_KEY)||'{}');}
+  catch{return {};}
+}
+function writeLocalApp(app){
+  localStorage.setItem(APP_KEY,JSON.stringify(app));
+  localStorage.setItem(LEGACY_APP_KEY,JSON.stringify(app));
+}
+function backupKey(){
+  return BACKUP_PREFIX+new Date().toISOString().replace(/[:.]/g,'-');
+}
+function makeBackup(reason){
+  try{
+    const app=readLocalApp();
+    app.entities=entries;
+    localStorage.setItem(backupKey(),JSON.stringify({reason,created:new Date().toISOString(),data:app}));
+    const keys=Object.keys(localStorage).filter(k=>k.startsWith(BACKUP_PREFIX)).sort();
+    while(keys.length>8)localStorage.removeItem(keys.shift());
+  }catch(e){
+    console.warn('備份失敗',e);
+  }
+}
+function normalize(list){
+  return (Array.isArray(list)?list:[]).map(e=>({
+    id:e.id||uid(),
+    name:e.name||e.title||'未命名詞條',
+    type:e.type||'角色',
+    imageUrl:normalizeImageUrl(e.imageUrl||''),
+    note:e.note||'',
+    sourceNodeId:e.sourceNodeId||'',
+    created:e.created||new Date().toLocaleDateString('zh-TW')
+  }));
+}
+function nodeEntityType(tag){
+  if(tag==='NPC')return '角色';
+  if(tag==='地點')return '城鎮';
+  if(['角色','城鎮','組織','物品'].includes(tag))return tag;
+  return tag||'角色';
+}
+function entityTypeToNodeTag(type){
+  if(type==='角色')return 'NPC';
+  if(type==='城鎮')return '地點';
+  return type||'事件';
+}
+function isNodeEntityCandidate(n){
+  return n&&['NPC','地點','組織','物品','角色','城鎮'].includes(n.tag)&&n.title;
+}
+function syncNodesIntoEntries(app){
+  const nodes=app.nodes||{};
+  entries=normalize(entries);
+  let changed=false;
+  Object.values(nodes).forEach(n=>{
+    if(!isNodeEntityCandidate(n))return;
+    let existing=null;
+    if(n.entityId)existing=entries.find(e=>e.id===n.entityId)||null;
+    if(!existing)existing=entries.find(e=>e.sourceNodeId===n.id)||null;
+    if(!existing)existing=entries.find(e=>e.name===n.title)||null;
+    if(existing){
+      if(!n.entityId){n.entityId=existing.id;changed=true;}
+      if(existing.sourceNodeId!==n.id){existing.sourceNodeId=n.id;changed=true;}
+      const nodeType=nodeEntityType(n.tag);
+      const nodeImage=normalizeImageUrl(n.imageUrl||'');
+      if(existing.name!==n.title){existing.name=n.title;changed=true;}
+      if(existing.type!==nodeType){existing.type=nodeType;changed=true;}
+      if(existing.imageUrl!==nodeImage){existing.imageUrl=nodeImage;changed=true;}
+      if(existing.note!==(n.note||'')){existing.note=n.note||'';changed=true;}
+    }else{
+      const created={
+        id:uid(),
+        name:n.title,
+        type:nodeEntityType(n.tag),
+        imageUrl:normalizeImageUrl(n.imageUrl||''),
+        note:n.note||'',
+        sourceNodeId:n.id,
+        created:n.created||new Date().toLocaleDateString('zh-TW')
+      };
+      entries.push(created);
+      n.entityId=created.id;
+      changed=true;
+    }
+  });
+  app.entities=entries;
+  return changed;
+}
+function load(){
+  try{
+    const app=readLocalApp();
+    const separate=JSON.parse(localStorage.getItem(DATA_KEY)||localStorage.getItem(LEGACY_DATA_KEY)||'[]');
+    entries=normalize(app.entities?.length?app.entities:separate);
+    const changed=syncNodesIntoEntries(app);
+    if(changed){
+      writeLocalApp(app);
+      localStorage.setItem(DATA_KEY,JSON.stringify(entries));
+      localStorage.setItem(LEGACY_DATA_KEY,JSON.stringify(entries));
+    }
+  }catch{entries=[];}
+}
+function saveAll(){
+  localStorage.setItem(DATA_KEY,JSON.stringify(entries));
+  localStorage.setItem(LEGACY_DATA_KEY,JSON.stringify(entries));
+  try{
+    const app=readLocalApp();
+    entries.forEach(e=>syncEntryToNode(e,app));
+    app.entities=entries;
+    app.updatedAt=nowIso();
+    writeLocalApp(app);
+    scheduleCloudSave(app);
+  }catch{
+    const app={entities:entries,updatedAt:nowIso()};
+    writeLocalApp(app);
+    scheduleCloudSave(app);
+  }
+}
+function syncEntryToNode(entry,app){
+  if(!entry||!app.nodes)return;
+  let node=entry.sourceNodeId?app.nodes[entry.sourceNodeId]:null;
+  if(!node)node=Object.values(app.nodes).find(n=>n.entityId===entry.id)||null;
+  if(!node)return;
+  node.title=entry.name;
+  node.tag=entityTypeToNodeTag(entry.type);
+  node.note=entry.note||'';
+  node.imageUrl=normalizeImageUrl(entry.imageUrl||'');
+  node.entityId=entry.id;
+  node.updatedAt=nowIso();
+  entry.sourceNodeId=node.id;
+}
+async function cloudLoad(){
+  if(!gsUrl){setSyncStatus('err','未連結雲端');return false;}
+  setSyncStatus('saving','載入中');
+  try{
+    const res=await fetch(gsUrl,{method:'GET'});
+    const json=await res.json();
+    if(json.ok&&json.data){
+      const app=JSON.parse(json.data);
+      entries=normalize(app.entities||[]);
+      const changed=syncNodesIntoEntries(app);
+      writeLocalApp(app);
+      localStorage.setItem(DATA_KEY,JSON.stringify(entries));
+      localStorage.setItem(LEGACY_DATA_KEY,JSON.stringify(entries));
+      setSyncStatus('ok','已同步');
+      if(changed)scheduleCloudSave(app);
+      return true;
+    }
+    if(json.ok&&!json.data){
+      setSyncStatus('ok','雲端為空');
+      return false;
+    }
+    setSyncStatus('err','讀取失敗');
+  }catch(e){
+    setSyncStatus('err','連線失敗');
+  }
+  return false;
+}
+function scheduleCloudSave(app){
+  if(!gsUrl){setSyncStatus('err','本機暫存');return;}
+  setSyncStatus('saving','儲存中');
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>doCloudSave(app),900);
+}
+async function doCloudSave(app){
+  if(!gsUrl)return;
+  try{
+    const params=new URLSearchParams();
+    params.append('value',JSON.stringify(app||readLocalApp()));
+    const res=await fetch(gsUrl,{method:'POST',body:params});
+    const json=await res.json();
+    if(json.ok)setSyncStatus('ok','已同步');
+    else setSyncStatus('err','儲存失敗');
+  }catch(e){
+    setSyncStatus('err','連線失敗');
+  }
+}
+function currentImage(){return document.getElementById('image-url').value.trim();}
+function toggleCustomType(){
+  const isCustom=document.getElementById('type').value==='__custom';
+  document.getElementById('custom-type-wrap').style.display=isCustom?'':'none';
+}
+function currentType(){
+  if(document.getElementById('type').value!=='__custom')return document.getElementById('type').value;
+  return document.getElementById('custom-type').value.trim()||'';
+}
+function setTypeValue(type){
+  if(BASE_TYPES.includes(type)){
+    document.getElementById('type').value=type;
+    document.getElementById('custom-type').value='';
+  }else{
+    document.getElementById('type').value='__custom';
+    document.getElementById('custom-type').value=type||'';
+  }
+  toggleCustomType();
+}
+function updatePreview(){
+  const img=document.getElementById('preview');
+  const url=normalizeImageUrl(currentImage());
+  if(url){img.src=url;img.style.visibility='visible';}
+  else{img.removeAttribute('src');img.style.visibility='hidden';}
+}
+function clearImage(){
+  document.getElementById('image-url').value='';
+  updatePreview();
+}
+function resetForm(){
+  editingId=null;
+  document.getElementById('form-title').textContent='新增詞條';
+  document.getElementById('name').value='';
+  setTypeValue('角色');
+  document.getElementById('image-url').value='';
+  document.getElementById('note').value='';
+  document.getElementById('image-hint').textContent='建議使用 Google Drive 圖片分享連結，權限設為「知道連結的任何人可查看」。';
+  updatePreview();
+}
+function saveEntry(){
+  const name=document.getElementById('name').value.trim();
+  if(!name){alert('請輸入名稱');return;}
+  const type=currentType();
+  if(!type){alert('請輸入自訂類型名稱');return;}
+  makeBackup(editingId?'編輯詞條前自動備份':'新增詞條前自動備份');
+  const old=entries.find(e=>e.id===editingId);
+  const data={
+    id:editingId||uid(),
+    name,
+    type,
+    imageUrl:normalizeImageUrl(currentImage()),
+    note:document.getElementById('note').value,
+    sourceNodeId:old?.sourceNodeId||'',
+    created:old?.created||new Date().toLocaleDateString('zh-TW')
+  };
+  const idx=entries.findIndex(e=>e.id===data.id);
+  if(idx>=0)entries[idx]=data;
+  else entries.push(data);
+  saveAll();
+  resetForm();
+  render();
+}
+function editEntry(id){
+  const e=entries.find(x=>x.id===id);if(!e)return;
+  editingId=id;
+  document.getElementById('form-title').textContent='編輯詞條';
+  document.getElementById('name').value=e.name;
+  setTypeValue(e.type);
+  document.getElementById('image-url').value=e.imageUrl||'';
+  document.getElementById('note').value=e.note||'';
+  updatePreview();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function deleteEntry(id){
+  const e=entries.find(x=>x.id===id);
+  if(!e || !confirm(`確定刪除「${e.name}」嗎？`))return;
+  makeBackup('刪除詞條前自動備份');
+  entries=entries.filter(x=>x.id!==id);
+  saveAll();
+  if(editingId===id)resetForm();
+  render();
+}
+function renderFilterOptions(){
+  const filter=document.getElementById('filter');
+  const current=filter.value;
+  const customTypes=[...new Set(entries.map(e=>e.type).filter(t=>t&&!BASE_TYPES.includes(t)))].sort();
+  filter.innerHTML='<option value="">全部</option>'+BASE_TYPES.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')+customTypes.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  filter.value=[...BASE_TYPES,...customTypes].includes(current)?current:'';
+}
+function render(){
+  renderFilterOptions();
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  const f=document.getElementById('filter').value;
+  const cards=document.getElementById('cards');
+  const list=entries.filter(e=>(!f||e.type===f)&&(!q||e.name.toLowerCase().includes(q)||e.note.toLowerCase().includes(q)));
+  if(!list.length){cards.innerHTML='<div class="empty">還沒有符合條件的詞條。</div>';return;}
+  cards.innerHTML=list.map(e=>{
+    const ts=TAG_STYLE[e.type]||{bg:'#f0f0f0',color:'#666'};
+    return `<article class="card">
+      ${e.imageUrl?`<img src="${esc(e.imageUrl)}" alt="${esc(e.name)}">`:''}
+      <div class="card-body">
+        <span class="tag" style="background:${ts.bg};color:${ts.color}">${esc(e.type)}</span>
+        <div class="name">${esc(e.name)}</div>
+        <div class="note">${esc(e.note)||'尚未填寫備註。'}</div>
+        <div class="card-actions">
+          <button class="btn" onclick="editEntry('${e.id}')">編輯</button>
+          <button class="btn red" onclick="deleteEntry('${e.id}')">刪除</button>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+}
+document.getElementById('image-url').addEventListener('input',updatePreview);
+document.getElementById('type').addEventListener('change',toggleCustomType);
+async function init(){
+  load();
+  resetForm();
+  render();
+  if(gsUrl){
+    const loaded=await cloudLoad();
+    if(loaded){resetForm();render();}
+  }else{
+    setSyncStatus('err','未連結雲端');
+  }
+}
+init();
+</script>
+</body>
+</html>

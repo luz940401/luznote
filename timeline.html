@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>格蘭歷時間線大綱</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:#f0ede8;color:#1a1a1a;min-height:100vh}
+header{background:#fff;border-bottom:2px solid #e0dbd2;padding:12px 20px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:20;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.logo{font-family:'Noto Serif TC',serif;font-size:17px;font-weight:500;color:#1a1a1a;flex:1;letter-spacing:.04em}
+.logo em{font-style:normal;color:#aaa;font-family:'Noto Sans TC',sans-serif;font-size:11px;font-weight:300;margin-left:8px}
+.hbtn{padding:7px 13px;font-size:12px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;cursor:pointer;transition:all .15s;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;text-decoration:none}
+.hbtn:hover{border-color:#bbb;color:#222;background:#fafafa}
+.hbtn.accent{border-color:#c0b8a8;color:#5a5040;background:#faf8f4}
+.page{max-width:1120px;margin:0 auto;padding:22px 16px 80px;display:grid;grid-template-columns:190px minmax(0,1fr);gap:18px}
+.year-nav{position:sticky;top:76px;align-self:start;background:#fff;border:1px solid #e0dbd2;border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.nav-title{font-size:11px;font-weight:700;color:#aaa;letter-spacing:.1em;margin-bottom:10px}
+.year-link{display:flex;justify-content:space-between;gap:8px;width:100%;border:0;background:transparent;border-radius:7px;color:#554b3d;font:inherit;font-size:13px;text-align:left;text-decoration:none;padding:7px 8px;cursor:pointer}
+.year-link:hover{background:#faf6ee}
+.year-link span:last-child{color:#a79b8a;font-size:12px}
+.toolbar{background:#fff;border:1px solid #e0dbd2;border-radius:10px;padding:13px 14px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.04);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{flex:1;min-width:180px;background:#f7f5f2;border:1px solid #e0dbd4;border-radius:7px;color:#1a1a1a;font-family:'Noto Sans TC',sans-serif;font-size:14px;padding:9px 12px;outline:none}
+.search:focus{border-color:#a09070;background:#fff}
+.count{font-size:12px;color:#8c8276}
+.year-section{position:relative;margin-bottom:24px}
+.year-head{display:flex;align-items:flex-end;gap:10px;margin:0 0 10px}
+.year-head h2{font-family:'Noto Serif TC',serif;font-size:24px;font-weight:500;line-height:1;color:#2a251d}
+.year-head span{font-size:12px;color:#998e80}
+.timeline-tree{position:relative;display:flex;flex-direction:column;gap:8px}
+.timeline-tree::before{content:'';position:absolute;left:17px;top:0;bottom:0;width:1px;background:#d8d0c5}
+.timeline-item{position:relative;margin-left:var(--indent,0px);padding-left:34px}
+.timeline-item::before{content:'';position:absolute;left:17px;top:20px;width:17px;height:1px;background:#d8d0c5}
+.timeline-item::after{content:'';position:absolute;left:12px;top:15px;width:11px;height:11px;border-radius:50%;background:#fff;border:2px solid var(--accent,#9a8c74)}
+.event-card{background:#fff;border:1px solid #e0dbd2;border-left:4px solid var(--accent,#9a8c74);border-radius:8px;padding:10px 12px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.event-card:hover{border-color:#c8c0b0;box-shadow:0 3px 10px rgba(0,0,0,.07)}
+.event-top{display:flex;align-items:center;gap:7px;margin-bottom:5px;min-width:0}
+.tag,.status{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.status{background:#eef3fb;color:#2050a0}
+.title{font-size:15px;font-weight:700;line-height:1.4;word-break:break-word;min-width:0;flex:1}
+.year-pill{font-size:11px;font-weight:700;color:#68460e;background:#fff7e6;border:1px solid #e4d1a8;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.path{font-size:11px;color:#9c9288;line-height:1.55;margin-bottom:5px;word-break:break-word}
+.note{font-size:13px;color:#3a352f;line-height:1.75;white-space:pre-wrap;word-break:break-word;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.actions{display:flex;gap:7px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.link{font-size:12px;color:#5a5040;text-decoration:none;border:1px solid #ddd3c6;background:#faf8f4;border-radius:6px;padding:5px 10px}
+.link:hover{background:#f3eee5;border-color:#c4b8a8}
+.empty{background:#fff;border:1px dashed #d8d0c5;border-radius:12px;padding:44px 20px;text-align:center;color:#aaa}
+.empty strong{display:block;font-family:'Noto Serif TC',serif;font-size:18px;font-weight:400;color:#999;margin-bottom:8px}
+.hidden{display:none}
+@media(max-width:760px){
+  header{flex-wrap:wrap;padding:10px 12px}
+  .logo{width:100%;flex:auto}
+  .page{display:block;padding:16px 12px 70px}
+  .year-nav{position:static;margin-bottom:12px}
+  .year-list{display:flex;gap:6px;overflow:auto;padding-bottom:2px}
+  .year-link{flex:0 0 auto;width:auto;background:#faf8f4;border:1px solid #eee6dc}
+  .timeline-tree::before{left:12px}
+  .timeline-item{margin-left:0!important;padding-left:28px}
+  .timeline-item::before{left:12px;width:16px}
+  .timeline-item::after{left:7px}
+  .event-top{align-items:flex-start;flex-wrap:wrap}
+  .title{width:100%;flex:auto}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">格蘭歷時間線 <em>按年份排列的大綱</em></div>
+  <a class="hbtn accent" href="./index.html">回筆記</a>
+  <a class="hbtn" href="./mindmap.html">心智圖</a>
+  <button class="hbtn" onclick="reloadData()">重新整理</button>
+</header>
+
+<div class="page">
+  <aside class="year-nav">
+    <div class="nav-title">年份導覽</div>
+    <div class="year-list" id="year-list"></div>
+  </aside>
+  <main>
+    <div class="toolbar">
+      <input class="search" id="search" placeholder="搜尋標題、筆記、類型或年份..." oninput="renderTimeline()">
+      <span class="count" id="count"></span>
+    </div>
+    <div id="timeline"></div>
+  </main>
+</div>
+
+<script>
+const APP_KEY='adventure-notes-v1';
+const LEGACY_APP_KEY='dnd-v3';
+const PALETTE=[
+  {accent:'#c0c0c0'},
+  {accent:'#e08080'},
+  {accent:'#b090e0'},
+  {accent:'#70c090'},
+  {accent:'#70a0e0'},
+  {accent:'#e0b050'},
+  {accent:'#e090b0'},
+  {accent:'#808070'}
+];
+const TAG_STYLE={
+  '事件':{bg:'rgba(220,140,60,.12)',color:'#a05010'},
+  'NPC':{bg:'rgba(100,80,200,.12)',color:'#4030a0'},
+  '地點':{bg:'rgba(40,140,100,.12)',color:'#1a7858'},
+  '物品':{bg:'rgba(180,140,30,.12)',color:'#907010'},
+  '任務':{bg:'rgba(50,120,220,.12)',color:'#2050a0'},
+  '組織':{bg:'rgba(120,70,35,.12)',color:'#704018'},
+  '秘密':{bg:'rgba(150,60,150,.12)',color:'#7a2a7a'},
+  '線索':{bg:'rgba(20,160,180,.12)',color:'#0a7a90'}
+};
+let nodes={},rootIds=[];
+
+function esc(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function normalizeGranDate(value){
+  const raw=(value||'').toString().trim();
+  if(!raw)return '';
+  const m=raw.match(/-?\d+/);
+  return m?`${m[0]}年`:raw;
+}
+function granYear(value){
+  const m=(value||'').toString().match(/-?\d+/);
+  return m?Number(m[0]):null;
+}
+function notePreview(note){
+  return (note||'').replace(/^格蘭[歷曆][：:][^\n]*(?:\n|$)/m,'').trim();
+}
+function loadData(){
+  try{
+    const raw=localStorage.getItem(APP_KEY)||localStorage.getItem(LEGACY_APP_KEY);
+    const data=raw?JSON.parse(raw):{};
+    nodes=data.nodes||{};
+    rootIds=Array.isArray(data.rootIds)?data.rootIds:[];
+    Object.values(nodes).forEach(n=>{
+      if(!Array.isArray(n.children))n.children=[];
+      n.granDate=normalizeGranDate(n.granDate||'');
+      if(!n.tag)n.tag='事件';
+      if(!n.status)n.status='進行中';
+    });
+    rootIds=rootIds.filter(id=>nodes[id]);
+  }catch(e){
+    nodes={};rootIds=[];
+  }
+}
+function originalOrder(){
+  const order=[];
+  function walk(id,depth,path){
+    const n=nodes[id];if(!n)return;
+    order.push({id,depth,path:[...path,n.title||'未命名節點']});
+    (n.children||[]).forEach(cid=>walk(cid,depth+1,[...path,n.title||'未命名節點']));
+  }
+  rootIds.forEach(id=>walk(id,0,[]));
+  return order;
+}
+function timelineRows(){
+  const order=originalOrder();
+  return order.map((row,index)=>{
+    const n=nodes[row.id];
+    return {...row,index,node:n,year:granYear(n.granDate),granDate:normalizeGranDate(n.granDate)};
+  });
+}
+function matches(row,query){
+  if(!query)return true;
+  const n=row.node;
+  const hay=[n.title,n.note,n.tag,n.status,row.granDate,row.path.join(' / ')].join(' ').toLowerCase();
+  return hay.includes(query);
+}
+function groupRows(rows){
+  const dated=rows.filter(r=>r.year!==null).sort((a,b)=>a.year-b.year||a.index-b.index);
+  const undated=rows.filter(r=>r.year===null).sort((a,b)=>a.index-b.index);
+  const groups=[];
+  dated.forEach(r=>{
+    let g=groups[groups.length-1];
+    if(!g||g.year!==r.year){
+      g={year:r.year,label:`${r.year}年`,rows:[]};
+      groups.push(g);
+    }
+    g.rows.push(r);
+  });
+  if(undated.length)groups.push({year:null,label:'未排入格蘭歷',rows:undated});
+  return groups;
+}
+function renderYearNav(groups){
+  const nav=document.getElementById('year-list');
+  nav.innerHTML='';
+  groups.forEach(g=>{
+    const a=document.createElement('a');
+    a.className='year-link';
+    a.href='#year-'+(g.year===null?'none':g.year);
+    a.innerHTML=`<span>${esc(g.label)}</span><span>${g.rows.length}</span>`;
+    nav.appendChild(a);
+  });
+}
+function renderTimeline(){
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  const all=timelineRows();
+  const filtered=all.filter(r=>matches(r,q));
+  const groups=groupRows(filtered);
+  renderYearNav(groups);
+  document.getElementById('count').textContent=`${filtered.length} / ${all.length} 則`;
+  const root=document.getElementById('timeline');
+  root.innerHTML='';
+  if(!all.length){
+    root.innerHTML='<div class="empty"><strong>還沒有筆記</strong>回主頁新增事件後，這裡會自動產生格蘭歷大綱。</div>';
+    return;
+  }
+  if(!filtered.length){
+    root.innerHTML='<div class="empty"><strong>沒有符合的事件</strong>換個關鍵字試試。</div>';
+    return;
+  }
+  groups.forEach(g=>{
+    const sec=document.createElement('section');
+    sec.className='year-section';
+    sec.id='year-'+(g.year===null?'none':g.year);
+    const head=document.createElement('div');
+    head.className='year-head';
+    head.innerHTML=`<h2>${esc(g.label)}</h2><span>${g.rows.length} 則事件</span>`;
+    const tree=document.createElement('div');
+    tree.className='timeline-tree';
+    g.rows.forEach(row=>tree.appendChild(renderItem(row)));
+    sec.appendChild(head);
+    sec.appendChild(tree);
+    root.appendChild(sec);
+  });
+}
+function renderItem(row){
+  const n=row.node;
+  const pal=PALETTE[n.ci]||PALETTE[0];
+  const ts=TAG_STYLE[n.tag]||{bg:'#f0f0f0',color:'#666'};
+  const item=document.createElement('article');
+  item.className='timeline-item';
+  item.style.setProperty('--indent',`${Math.min(row.depth,8)*22}px`);
+  item.style.setProperty('--accent',pal.accent);
+  const note=notePreview(n.note);
+  const path=row.path.slice(0,-1).join(' / ')||'主線';
+  item.innerHTML=`
+    <div class="event-card">
+      <div class="event-top">
+        <span class="tag" style="background:${ts.bg};color:${ts.color}">${esc(n.tag)}</span>
+        <span class="status">${esc(n.status||'進行中')}</span>
+        <strong class="title">${esc(n.title||'未命名節點')}</strong>
+        <span class="year-pill">${esc(row.granDate||'未定年')}</span>
+      </div>
+      <div class="path">${esc(path)}</div>
+      ${note?`<div class="note">${esc(note)}</div>`:''}
+      <div class="actions">
+        <a class="link" href="./index.html#node-${encodeURIComponent(row.id)}">原筆記</a>
+        <a class="link" href="./mindmap.html">心智圖</a>
+      </div>
+    </div>`;
+  return item;
+}
+function reloadData(){
+  loadData();
+  renderTimeline();
+}
+loadData();
+renderTimeline();
+</script>
+</body>
+</html>
