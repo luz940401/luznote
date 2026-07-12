@@ -1392,13 +1392,29 @@ function buildImageBlock(imageUrl,title){
 }
 
 function mentionCandidates(skipId){
+  const skipNodeId=String(skipId||'').startsWith('node:')?String(skipId).slice(5):skipId;
+  const skipEntityId=String(skipId||'').startsWith('entity:')?String(skipId).slice(7):'';
   const nodeEntries=Object.values(nodes)
     .filter(n=>n.id!==skipId && ['NPC','地點','組織'].includes(n.tag) && n.title && n.title.trim().length>=2)
     .map(n=>({key:'node:'+n.id,name:n.title,type:n.tag,note:n.note,imageUrl:n.imageUrl,created:n.created,nodeId:n.id}));
   const glossaryEntries=entities
     .filter(e=>e.name && cleanEntityName(e.name).length>=1)
     .map(e=>({key:'entity:'+e.id,name:cleanEntityName(e.name),type:e.type,note:e.note,imageUrl:e.imageUrl,created:e.created,entityId:e.id}));
+  return [...glossaryEntries,...nodeEntries]
+    .sort((a,b)=>b.name.length-a.name.length);
+}
+function mentionCandidates(skipId){
+  const raw=String(skipId||'');
+  const skipNodeId=raw.startsWith('node:')?raw.slice(5):raw;
+  const skipEntityId=raw.startsWith('entity:')?raw.slice(7):'';
+  const nodeEntries=Object.values(nodes)
+    .filter(n=>n.id!==skipNodeId && n.title && cleanEntityName(n.title).length>=2)
+    .map(n=>({key:'node:'+n.id,name:cleanEntityName(n.title),type:n.tag,note:n.note,imageUrl:n.imageUrl,created:n.created,nodeId:n.id}));
+  const glossaryEntries=entities
+    .filter(e=>e.id!==skipEntityId && e.name && cleanEntityName(e.name).length>=1)
+    .map(e=>({key:'entity:'+e.id,name:cleanEntityName(e.name),type:e.type,note:e.note,imageUrl:e.imageUrl,created:e.created,entityId:e.id}));
   return [...nodeEntries,...glossaryEntries]
+    .filter(item=>item.name)
     .sort((a,b)=>b.name.length-a.name.length);
 }
 function linkMentions(text,skipId){
@@ -1445,7 +1461,7 @@ function openEntityModal(id){
     img.onclick=null;
     if(fallback)fallback.style.display='none';
   }
-  document.getElementById('entity-note').textContent=item.note||'尚未填寫備註。';
+  document.getElementById('entity-note').innerHTML=item.note?linkMentions(item.note,id):'尚未填寫備註。';
   document.getElementById('entity-edit-name').value=item.name||'';
   document.getElementById('entity-edit-type').value=[...document.getElementById('entity-edit-type').options].some(o=>o.value===item.type)?item.type:'角色';
   document.getElementById('entity-edit-img').value=item.imageUrl||'';
@@ -1631,6 +1647,9 @@ function saveQuickEntity(){
   selectedEntityText='';
   save();
   render();
+  if(document.getElementById('entity-modal')?.classList.contains('open')&&activeEntityKey){
+    openEntityModal(activeEntityKey);
+  }
   alert(existing?`已更新既有詞條：${name}`:`已建立詞條：${name}`);
 }
 
@@ -1742,7 +1761,7 @@ document.addEventListener('mouseup',()=>{
     const sel=window.getSelection();
     const text=cleanEntityName(sel.toString());
     const anchor=sel.anchorNode?.nodeType===1?sel.anchorNode:sel.anchorNode?.parentElement;
-    if(!text || !anchor?.closest?.('.card-note')){
+    if(!text || !anchor?.closest?.('.card-note,.entity-note')){
       btn.classList.remove('show');
       return;
     }
