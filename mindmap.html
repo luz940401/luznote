@@ -13,13 +13,23 @@ header{height:54px;background:#fff;border-bottom:1px solid #ddd5c9;display:flex;
 .logo em{font-family:'Noto Sans TC',sans-serif;font-style:normal;color:#aaa;font-size:11px;margin-left:8px}
 .btn{padding:7px 12px;border:1px solid #d8d0c4;border-radius:7px;background:#fff;color:#4c463e;font-size:13px;cursor:pointer;text-decoration:none}
 .btn:hover{background:#f7f4ef}
+.btn.admin-on{border-color:#9ebc92;background:#f2fbef;color:#315c28}
+.zoom-tools{display:flex;align-items:center;gap:4px;border:1px solid #e0d8cc;border-radius:8px;padding:3px;background:#faf8f4}
+.zoom-tools .btn{padding:4px 9px;border-color:transparent;background:transparent}
+.zoom-label{min-width:46px;text-align:center;font-size:12px;color:#6f665c}
+.mode-label{font-size:12px;color:#8a8176;border:1px solid #e0d8cc;border-radius:999px;padding:5px 10px;background:#faf8f4;white-space:nowrap}
 #map-wrap{height:calc(100vh - 54px);overflow:auto;cursor:grab}
 #map-wrap:active{cursor:grabbing}
-#map{position:relative;min-width:1200px;min-height:760px;padding:48px 80px}
+#map-space{position:relative;min-width:1200px;min-height:760px}
+#map{position:absolute;left:0;top:0;min-width:1200px;min-height:760px;padding:48px 80px;transform-origin:0 0}
 .node{position:absolute;width:210px;background:#fff;border:1px solid #d9d0c4;border-left:5px solid #9a8c74;border-radius:8px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.08);cursor:grab;transition:transform .15s,box-shadow .15s;touch-action:none;text-align:left}
 .node:active{cursor:grabbing}
 .node:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.12)}
 .node.dragging{transform:none;box-shadow:0 12px 28px rgba(0,0,0,.18);z-index:4}
+body:not(.admin-mode) .node{cursor:pointer;touch-action:manipulation}
+body:not(.admin-mode) .node:active{cursor:pointer}
+body:not(.admin-mode) .edit-form{display:none}
+body:not(.admin-mode) #detail-save-btn{display:none}
 .node-title{font-size:14px;font-weight:700;line-height:1.35;word-break:break-word}
 .node-note{font-size:12px;color:#6f675e;line-height:1.5;margin-top:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;margin-bottom:6px;background:#f0ece5;color:#6b5c4c}
@@ -28,9 +38,10 @@ header{height:54px;background:#fff;border-bottom:1px solid #ddd5c9;display:flex;
 svg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:10;align-items:center;justify-content:center;padding:20px}
 .modal-bg.open{display:flex}
-.modal{width:100%;max-width:430px;background:#fff;border-radius:14px;border:1px solid #e4ddd4;box-shadow:0 10px 34px rgba(0,0,0,.18);padding:22px}
+.modal{width:100%;max-width:430px;max-height:calc(100vh - 40px);overflow-y:auto;background:#fff;border-radius:14px;border:1px solid #e4ddd4;box-shadow:0 10px 34px rgba(0,0,0,.18);padding:22px}
 .modal h3{font-family:'Noto Serif TC',serif;font-size:19px;font-weight:400;margin-bottom:8px}
-.modal img{width:100%;max-height:240px;object-fit:cover;border-radius:10px;border:1px solid #e0dbd2;margin:8px 0 12px;background:#f5f3ef}
+.modal img{width:100%;max-height:240px;object-fit:contain;border-radius:10px;border:1px solid #e0dbd2;margin:8px 0 12px;background:#f5f3ef;cursor:zoom-in}
+.image-fallback{display:none;width:max-content;max-width:100%;border:1px solid #d8c8a8;background:#fffaf0;color:#68460e;border-radius:7px;padding:7px 10px;font-size:12px;text-decoration:none;margin:8px 0 12px}
 .modal-note{font-size:14px;color:#333;line-height:1.8;white-space:pre-wrap;word-break:break-word}
 .edit-form{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .form-row{display:flex;gap:8px;flex-wrap:wrap}
@@ -44,7 +55,12 @@ textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
 @media(max-width:700px){
   header{height:auto;min-height:54px;flex-wrap:wrap;padding:10px 12px}
   .logo{width:100%;flex:auto}
+  .zoom-tools{order:3}
+  .mode-label{order:4}
   #map-wrap{height:calc(100vh - 92px)}
+  .modal-bg{padding:10px}
+  .modal{max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px);padding:18px}
+  .modal img{max-height:45vh;max-height:45dvh}
 }
 </style>
 </head>
@@ -54,11 +70,21 @@ textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
   <span class="btn" id="sync-label">讀取中</span>
   <button class="btn" onclick="fitMap()">置中</button>
   <a class="btn" href="./index.html">返回筆記</a>
+  <span class="mode-label" id="mode-label">觀看模式</span>
+  <div class="zoom-tools">
+    <button class="btn" onclick="zoomBy(-0.1)" title="縮小">−</button>
+    <span class="zoom-label" id="zoom-label">100%</span>
+    <button class="btn" onclick="zoomBy(0.1)" title="放大">＋</button>
+    <button class="btn" onclick="resetZoom()" title="重設縮放">100%</button>
+  </div>
+  <button class="btn" id="admin-btn" onclick="toggleAdminMode()">管理者</button>
 </header>
 
 <div id="map-wrap">
-  <div id="map">
-    <svg id="lines"></svg>
+  <div id="map-space">
+    <div id="map">
+      <svg id="lines"></svg>
+    </div>
   </div>
 </div>
 
@@ -67,6 +93,7 @@ textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
     <span class="tag" id="detail-tag"></span>
     <h3 id="detail-title"></h3>
     <img id="detail-img" alt="" style="display:none">
+    <a class="image-fallback" id="detail-img-fallback" target="_blank" rel="noopener">圖片無法顯示，點此開啟原圖</a>
     <div class="modal-note" id="detail-note"></div>
     <div class="edit-form">
       <div class="form-row">
@@ -94,7 +121,7 @@ textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
       <div class="form-group"><div class="form-label">描述內容</div><textarea class="inp" id="detail-note-inp"></textarea></div>
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="saveDetailEdit()">儲存</button>
+      <button class="btn" id="detail-save-btn" onclick="saveDetailEdit()">儲存</button>
       <button class="btn" onclick="document.getElementById('detail-modal').classList.remove('open')">關閉</button>
     </div>
   </div>
@@ -132,10 +159,69 @@ const LEGACY_APP_KEY='dnd-v3';
 const GS_URL_KEY='adventure-notes-gs-url';
 const LEGACY_GS_URL_KEY='dnd-gs-url';
 let gsUrl=localStorage.getItem(GS_URL_KEY)||localStorage.getItem(LEGACY_GS_URL_KEY)||'';
+const ADMIN_HASH_KEY='adventure-notes-mindmap-admin-hash';
+const ADMIN_SESSION_KEY='adventure-notes-mindmap-admin-unlocked';
+const ADMIN_TOKEN_SESSION_KEY='adventure-notes-mindmap-admin-token';
+const ZOOM_KEY='adventure-notes-mindmap-zoom';
+let isAdmin=sessionStorage.getItem(ADMIN_SESSION_KEY)==='1';
+let adminToken=sessionStorage.getItem(ADMIN_TOKEN_SESSION_KEY)||'';
+let zoom=Number(localStorage.getItem(ZOOM_KEY)||'1');
+if(!Number.isFinite(zoom))zoom=1;
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function setSyncLabel(text){document.getElementById('sync-label').textContent=text;}
 function nowIso(){return new Date().toISOString();}
+function clamp(n,min,max){return Math.min(max,Math.max(min,n));}
+function hashAdminPassword(value){
+  let h=2166136261;
+  const text=String(value||'');
+  for(let i=0;i<text.length;i++){
+    h^=text.charCodeAt(i);
+    h=Math.imul(h,16777619);
+  }
+  return (h>>>0).toString(16);
+}
+function updateAdminUi(){
+  document.body.classList.toggle('admin-mode',isAdmin);
+  const label=document.getElementById('mode-label');
+  const btn=document.getElementById('admin-btn');
+  if(label)label.textContent=isAdmin?'管理者模式':'觀看模式';
+  if(btn){
+    btn.textContent=isAdmin?'鎖定':'管理者';
+    btn.classList.toggle('admin-on',isAdmin);
+  }
+}
+function toggleAdminMode(){
+  if(isAdmin){
+    isAdmin=false;
+    adminToken='';
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    sessionStorage.removeItem(ADMIN_TOKEN_SESSION_KEY);
+    updateAdminUi();
+    render();
+    return;
+  }
+  const saved=localStorage.getItem(ADMIN_HASH_KEY);
+  if(!saved){
+    const next=prompt('第一次使用請設定管理者密碼。');
+    if(!next)return;
+    const again=prompt('請再輸入一次管理者密碼。');
+    if(next!==again){alert('兩次密碼不同。');return;}
+    localStorage.setItem(ADMIN_HASH_KEY,hashAdminPassword(next));
+    isAdmin=true;
+    adminToken=next;
+  }else{
+    const pass=prompt('請輸入管理者密碼。');
+    if(!pass)return;
+    if(hashAdminPassword(pass)!==saved){alert('管理者密碼不正確。');return;}
+    isAdmin=true;
+    adminToken=pass;
+  }
+  sessionStorage.setItem(ADMIN_SESSION_KEY,'1');
+  sessionStorage.setItem(ADMIN_TOKEN_SESSION_KEY,adminToken);
+  updateAdminUi();
+  render();
+}
 function entityUid(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function extractDriveFileId(url){
   const raw=(url||'').trim();
@@ -156,6 +242,15 @@ function normalizeImageUrl(url){
   const raw=(url||'').trim();
   const id=extractDriveFileId(raw);
   return id?`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`:raw;
+}
+function openableImageUrl(url){
+  const raw=(url||'').trim();
+  const id=extractDriveFileId(raw);
+  return id?`https://drive.google.com/file/d/${encodeURIComponent(id)}/view?usp=sharing`:raw;
+}
+function openImage(url){
+  const target=openableImageUrl(url);
+  if(target)window.open(target,'_blank','noopener');
 }
 function normalizeNode(n){
   if(!Array.isArray(n.children))n.children=[];
@@ -186,6 +281,7 @@ function saveLocal(){
   localStorage.setItem(LEGACY_APP_KEY,JSON.stringify(data));
 }
 function scheduleCloudSave(){
+  if(!isAdmin){setSyncLabel('觀看模式');return;}
   saveLocal();
   if(!gsUrl){setSyncLabel('本機已保存');return;}
   setSyncLabel('儲存中');
@@ -196,6 +292,7 @@ async function doCloudSave(){
   try{
     const params=new URLSearchParams();
     params.append('value',JSON.stringify(currentData()));
+    if(isAdmin&&adminToken)params.append('adminToken',adminToken);
     const res=await fetch(gsUrl,{method:'POST',body:params});
     const json=await res.json();
     setSyncLabel(json.ok?'已同步':'儲存失敗');
@@ -232,6 +329,83 @@ async function loadCloud(){
   }
   setSyncLabel('本機資料');
   return false;
+}
+function applyZoom(){
+  zoom=clamp(zoom,.45,2.2);
+  const map=document.getElementById('map');
+  const space=document.getElementById('map-space');
+  const label=document.getElementById('zoom-label');
+  if(map)map.style.transform=`scale(${zoom})`;
+  if(space&&map){
+    const baseW=Number(map.dataset.baseW)||map.offsetWidth||1200;
+    const baseH=Number(map.dataset.baseH)||map.offsetHeight||760;
+    space.style.width=Math.ceil(baseW*zoom)+'px';
+    space.style.height=Math.ceil(baseH*zoom)+'px';
+  }
+  if(label)label.textContent=Math.round(zoom*100)+'%';
+  localStorage.setItem(ZOOM_KEY,String(zoom));
+}
+function setZoomAt(value,clientX,clientY){
+  const wrap=document.getElementById('map-wrap');
+  const oldZoom=zoom||1;
+  const rect=wrap?wrap.getBoundingClientRect():{left:0,top:0,width:0,height:0};
+  const offsetX=wrap?(clientX-rect.left):0;
+  const offsetY=wrap?(clientY-rect.top):0;
+  const mapX=wrap?(wrap.scrollLeft+offsetX)/oldZoom:0;
+  const mapY=wrap?(wrap.scrollTop+offsetY)/oldZoom:0;
+  zoom=clamp(value,.45,2.2);
+  applyZoom();
+  if(wrap&&oldZoom){
+    wrap.scrollLeft=Math.max(0,mapX*zoom-offsetX);
+    wrap.scrollTop=Math.max(0,mapY*zoom-offsetY);
+  }
+}
+function setZoom(value){
+  const wrap=document.getElementById('map-wrap');
+  if(!wrap){zoom=clamp(value,.45,2.2);applyZoom();return;}
+  const rect=wrap.getBoundingClientRect();
+  setZoomAt(value,rect.left+rect.width/2,rect.top+rect.height/2);
+}
+function zoomBy(delta){setZoom(zoom+delta);}
+function resetZoom(){setZoom(1);}
+function initZoomControls(){
+  const wrap=document.getElementById('map-wrap');
+  if(!wrap)return;
+  wrap.addEventListener('wheel',e=>{
+    if(!e.ctrlKey&&!e.metaKey)return;
+    e.preventDefault();
+    setZoomAt(zoom+(e.deltaY>0?-.08:.08),e.clientX,e.clientY);
+  },{passive:false});
+  let pinchStartDist=0;
+  let pinchStartZoom=1;
+  function touchDistance(touches){
+    const dx=touches[0].clientX-touches[1].clientX;
+    const dy=touches[0].clientY-touches[1].clientY;
+    return Math.hypot(dx,dy);
+  }
+  function touchCenter(touches){
+    return {
+      x:(touches[0].clientX+touches[1].clientX)/2,
+      y:(touches[0].clientY+touches[1].clientY)/2
+    };
+  }
+  wrap.addEventListener('touchstart',e=>{
+    if(e.touches.length!==2)return;
+    pinchStartDist=touchDistance(e.touches);
+    pinchStartZoom=zoom;
+    e.preventDefault();
+  },{passive:false});
+  wrap.addEventListener('touchmove',e=>{
+    if(e.touches.length!==2||!pinchStartDist)return;
+    const dist=touchDistance(e.touches);
+    const center=touchCenter(e.touches);
+    setZoomAt(pinchStartZoom*(dist/pinchStartDist),center.x,center.y);
+    e.preventDefault();
+  },{passive:false});
+  wrap.addEventListener('touchend',e=>{
+    if(e.touches.length<2)pinchStartDist=0;
+  },{passive:true});
+  wrap.addEventListener('touchcancel',()=>{pinchStartDist=0;},{passive:true});
 }
 function subtreeLeaves(id){
   const kids=(nodes[id]?.children||[]).filter(Boolean);
@@ -297,6 +471,7 @@ function drawNode(id,pos){
   document.getElementById('map').appendChild(el);
 }
 function initNodeDrag(el,id){
+  if(!isAdmin)return;
   el.addEventListener('pointerdown',e=>{
     if(e.button!==undefined&&e.button!==0)return;
     const wrap=document.getElementById('map-wrap');
@@ -309,8 +484,8 @@ function initNodeDrag(el,id){
   });
   el.addEventListener('pointermove',e=>{
     if(!dragState||dragState.id!==id)return;
-    const dx=e.clientX-dragState.startX;
-    const dy=e.clientY-dragState.startY;
+    const dx=(e.clientX-dragState.startX)/zoom;
+    const dy=(e.clientY-dragState.startY)/zoom;
     if(Math.abs(dx)>3||Math.abs(dy)>3)dragState.moved=true;
     if(!dragState.moved)return;
     const x=Math.max(20,dragState.baseX+dx);
@@ -388,10 +563,13 @@ function resizeMap(){
   const map=document.getElementById('map');
   map.style.width=maxX+'px';
   map.style.height=maxY+'px';
+  map.dataset.baseW=String(maxX);
+  map.dataset.baseH=String(maxY);
+  applyZoom();
 }
 function fitMap(){
   const wrap=document.getElementById('map-wrap');
-  wrap.scrollLeft=Math.max(0,(document.getElementById('map').offsetWidth-wrap.clientWidth)/2);
+  wrap.scrollLeft=Math.max(0,(document.getElementById('map-space').offsetWidth-wrap.clientWidth)/2);
   wrap.scrollTop=0;
 }
 function openDetail(id){
@@ -408,12 +586,29 @@ function openDetail(id){
   document.getElementById('detail-img-inp').value=n.imageUrl||'';
   document.getElementById('detail-note-inp').value=n.note||'';
   const img=document.getElementById('detail-img');
+  const fallback=document.getElementById('detail-img-fallback');
   const imageUrl=normalizeImageUrl(n.imageUrl);
-  if(imageUrl){img.src=imageUrl;img.alt=n.title;img.style.display='';}
-  else{img.removeAttribute('src');img.style.display='none';}
+  if(fallback){fallback.style.display='none';fallback.href=openableImageUrl(n.imageUrl||imageUrl);}
+  if(imageUrl){
+    img.src=imageUrl;
+    img.alt=n.title;
+    img.style.display='';
+    img.onclick=()=>openImage(n.imageUrl||imageUrl);
+    img.onerror=()=>{
+      img.style.display='none';
+      if(fallback)fallback.style.display='inline-block';
+    };
+  }
+  else{
+    img.removeAttribute('src');
+    img.style.display='none';
+    img.onclick=null;
+    if(fallback)fallback.style.display='none';
+  }
   document.getElementById('detail-modal').classList.add('open');
 }
 function saveDetailEdit(){
+  if(!isAdmin){alert('請先進入管理者模式。');return;}
   const n=nodes[activeDetailId];if(!n)return;
   const title=document.getElementById('detail-title-inp').value.trim();
   if(!title){alert('請輸入標題');return;}
@@ -429,11 +624,14 @@ function saveDetailEdit(){
   openDetail(n.id);
 }
 async function init(){
+  updateAdminUi();
+  initZoomControls();
   const hasLocal=loadLocal();
   if(hasLocal)setSyncLabel('本機資料');
   if(gsUrl)await loadCloud();
   else setSyncLabel('未連結雲端');
   render();
+  applyZoom();
 }
 init();
 </script>

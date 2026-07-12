@@ -40,6 +40,10 @@ header{
   main{padding:16px 0 80px}
   .add-row{flex-direction:column;padding:0}
   .add-row .inp,.add-row .sel,.add-row .btn{width:100%}
+  .modal-bg{padding:10px}
+  .modal{max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px);overflow-y:auto;padding:18px}
+  .card-image{max-height:220px}
+  .entity-card-img{max-height:45vh;max-height:45dvh}
   .card-title{font-size:14px}
   .root-card .card-title{font-size:15px}
   .stats-bar{flex-wrap:wrap;gap:5px}
@@ -152,12 +156,18 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
 .tree-toggle.collapsed{color:#7a6a50;border-color:#c8bca8;background:#faf5ec}
 .card-body{border-top:1px solid #ede8e0;padding:10px 14px 13px;display:none}
 .card-body.open{display:block}
+.card-image-wrap{margin-bottom:10px}
+.card-image-link{display:block;border:1px solid #e0dbd2;border-radius:10px;overflow:hidden;background:#f5f3ef;text-decoration:none}
+.card-image{display:block;width:100%;max-height:260px;object-fit:contain;background:#f5f3ef}
+.image-fallback{display:none;align-items:center;width:max-content;max-width:100%;border:1px solid #d8c8a8;background:#fffaf0;color:#68460e;border-radius:7px;padding:7px 10px;font-size:12px;text-decoration:none}
+.card-image-wrap.image-error .card-image-link{display:none}
+.card-image-wrap.image-error .image-fallback{display:inline-flex}
 .card-note{font-size:14px;color:#2a2a2a;line-height:1.9;white-space:pre-wrap;word-break:break-word;font-family:'Noto Sans TC',sans-serif;font-weight:400}
 .mention-link{border:0;border-bottom:1px dotted #6a7f50;background:#f3f8e8;color:#405c24;border-radius:4px;padding:0 4px;font:inherit;cursor:pointer}
 .mention-link:hover{background:#e7f0d5;color:#213610}
 #quick-entity-btn{position:fixed;z-index:180;display:none;padding:7px 11px;border:1px solid #b8c8a0;border-radius:999px;background:#f6faef;color:#405c24;font-size:12px;box-shadow:0 6px 18px rgba(0,0,0,.14);cursor:pointer}
 #quick-entity-btn.show{display:block}
-.entity-card-img{width:100%;max-height:220px;object-fit:cover;border-radius:10px;border:1px solid #e0dbd2;margin:8px 0 12px;background:#f5f3ef}
+.entity-card-img{width:100%;max-height:220px;object-fit:contain;border-radius:10px;border:1px solid #e0dbd2;margin:8px 0 12px;background:#f5f3ef;cursor:zoom-in}
 .entity-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .entity-note{font-size:14px;color:#333;line-height:1.8;white-space:pre-wrap;word-break:break-word}
 .edit-form{padding:2px 0 0;display:flex;flex-direction:column;gap:8px}
@@ -381,6 +391,7 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
       <span class="card-date" id="entity-date"></span>
     </div>
     <img class="entity-card-img" id="entity-img" alt="" style="display:none">
+    <a class="image-fallback" id="entity-img-fallback" target="_blank" rel="noopener" style="display:none">圖片無法顯示，點此開啟原圖</a>
     <div class="entity-note" id="entity-note"></div>
     <div class="edit-form" id="entity-edit-form" style="display:none;margin-top:12px">
       <div class="form-row">
@@ -404,6 +415,8 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
       <button class="btn ghost" onclick="document.getElementById('entity-modal').classList.remove('open')">關閉</button>
       <button class="btn" id="entity-sync-btn" style="display:none">同步詞條庫</button>
       <button class="btn pri" id="entity-edit-btn">編輯</button>
+      <button class="btn ghost" id="entity-cancel-edit-btn" style="display:none">取消編輯</button>
+      <button class="btn pri" id="entity-save-btn" style="display:none">儲存</button>
     </div>
   </div>
 </div>
@@ -570,6 +583,15 @@ function normalizeImageUrl(url){
   const raw=(url||'').trim();
   const id=extractDriveFileId(raw);
   return id?`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`:raw;
+}
+function openableImageUrl(url){
+  const raw=(url||'').trim();
+  const id=extractDriveFileId(raw);
+  return id?`https://drive.google.com/file/d/${encodeURIComponent(id)}/view?usp=sharing`:raw;
+}
+function openImage(url){
+  const target=openableImageUrl(url);
+  if(target)window.open(target,'_blank','noopener');
 }
 function formatDateTime(value){
   if(!value)return '';
@@ -1190,7 +1212,7 @@ function rNode(id,depth){
   card.style.background=pal.bg;
   if(isRoot){card.style.borderLeftWidth='4px';card.style.borderLeftColor=pal.accent||pal.dot;}
   const head=document.createElement('div');head.className='card-head';
-  const hasContent=n.note||editingId===id;
+  const hasContent=n.note||n.imageUrl||editingId===id;
   head.onclick=e=>{
     if(e.target.closest('.act,.edit-form,.child-form,.btn,.swatch,.tree-toggle'))return;
     if(hasContent||editingId===id){n.open=!n.open;save();render();}
@@ -1265,7 +1287,16 @@ function rNode(id,depth){
   const body=document.createElement('div');
   body.className='card-body'+((n.open||editingId===id)?' open':'');
   if(editingId===id){body.appendChild(buildEditForm(n));}
-  else if(n.note){const noteEl=document.createElement('div');noteEl.className='card-note';noteEl.innerHTML=linkMentions(n.note,id);body.appendChild(noteEl);}
+  else {
+    const imageBlock=buildImageBlock(n.imageUrl,n.title);
+    if(imageBlock)body.appendChild(imageBlock);
+    if(n.note){
+      const noteEl=document.createElement('div');
+      noteEl.className='card-note';
+      noteEl.innerHTML=linkMentions(n.note,id);
+      body.appendChild(noteEl);
+    }
+  }
   card.appendChild(body);
   main.appendChild(card);
   if(addingChildOf===id)main.appendChild(buildChildForm(id));
@@ -1291,6 +1322,34 @@ function tagOpts(sel){
 }
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function attrEsc(s){return esc(s).replace(/'/g,'&#39;');}
+function buildImageBlock(imageUrl,title){
+  const normalized=normalizeImageUrl(imageUrl);
+  if(!normalized)return null;
+  const wrap=document.createElement('div');
+  wrap.className='card-image-wrap';
+  const link=document.createElement('a');
+  link.className='card-image-link';
+  link.href=openableImageUrl(imageUrl||normalized);
+  link.target='_blank';
+  link.rel='noopener';
+  link.title='開啟圖片';
+  const img=document.createElement('img');
+  img.className='card-image';
+  img.src=normalized;
+  img.alt=title||'';
+  img.loading='lazy';
+  img.onerror=()=>wrap.classList.add('image-error');
+  link.appendChild(img);
+  const fallback=document.createElement('a');
+  fallback.className='image-fallback';
+  fallback.href=openableImageUrl(imageUrl||normalized);
+  fallback.target='_blank';
+  fallback.rel='noopener';
+  fallback.textContent='圖片無法顯示，點此開啟原圖';
+  wrap.appendChild(link);
+  wrap.appendChild(fallback);
+  return wrap;
+}
 
 function mentionCandidates(skipId){
   const nodeEntries=Object.values(nodes)
@@ -1328,20 +1387,40 @@ function openEntityModal(id){
   tag.textContent=item.type;tag.style.background=ts.bg;tag.style.color=ts.color;
   document.getElementById('entity-date').textContent=item.granDate?`格蘭歷 ${item.granDate}`:(item.created||'');
   const img=document.getElementById('entity-img');
+  const fallback=document.getElementById('entity-img-fallback');
   const imageUrl=normalizeImageUrl(item.imageUrl);
-  if(imageUrl){img.src=imageUrl;img.alt=item.name;img.style.display='';}
-  else{img.removeAttribute('src');img.style.display='none';}
+  if(fallback){fallback.style.display='none';fallback.href=openableImageUrl(item.imageUrl||imageUrl);}
+  if(imageUrl){
+    img.src=imageUrl;
+    img.alt=item.name;
+    img.style.display='';
+    img.onclick=()=>openImage(item.imageUrl||imageUrl);
+    img.onerror=()=>{
+      img.style.display='none';
+      if(fallback)fallback.style.display='inline-flex';
+    };
+  }
+  else{
+    img.removeAttribute('src');
+    img.style.display='none';
+    img.onclick=null;
+    if(fallback)fallback.style.display='none';
+  }
   document.getElementById('entity-note').textContent=item.note||'尚未填寫備註。';
   document.getElementById('entity-edit-name').value=item.name||'';
   document.getElementById('entity-edit-type').value=[...document.getElementById('entity-edit-type').options].some(o=>o.value===item.type)?item.type:'角色';
   document.getElementById('entity-edit-img').value=item.imageUrl||'';
   document.getElementById('entity-edit-note').value=item.note||'';
   const editBtn=document.getElementById('entity-edit-btn');
+  const cancelEditBtn=document.getElementById('entity-cancel-edit-btn');
+  const saveBtn=document.getElementById('entity-save-btn');
   const syncBtn=document.getElementById('entity-sync-btn');
   syncBtn.style.display=item.nodeId?'':'none';
   syncBtn.onclick=()=>syncActiveNodeToEntity();
   setEntityModalMode(false);
-  editBtn.onclick=()=>toggleEntityEdit();
+  editBtn.onclick=()=>setEntityModalMode(true);
+  cancelEditBtn.onclick=()=>openEntityModal(activeEntityKey);
+  saveBtn.onclick=()=>saveEntityModalEdit();
   document.getElementById('entity-modal').classList.add('open');
 }
 
@@ -1356,7 +1435,8 @@ function toggleEntityEdit(){
 }
 
 function saveEntityModalEdit(){
-  const item=getEntityLike(activeEntityKey);if(!item)return;
+  const item=getEntityLike(activeEntityKey);
+  if(!item){alert('找不到要儲存的詞條，請重新開啟後再試。');return;}
   const name=document.getElementById('entity-edit-name').value.trim();
   if(!name){alert('請輸入名稱');return;}
   const type=document.getElementById('entity-edit-type').value;
@@ -1376,11 +1456,13 @@ function saveEntityModalEdit(){
     const e=entities.find(x=>x.id===item.entityId);
     if(e)Object.assign(e,{name,type,imageUrl,note,granDate:extractGranDateFromNote(note)||normalizeGranDate(e.granDate)});
     saveEntities();
+    touchData();
   }
   save({touch:false});
   setEntityModalMode(false);
   openEntityModal(activeEntityKey);
   render();
+  alert('已儲存。');
 }
 
 function syncActiveNodeToEntity(){
@@ -1450,9 +1532,15 @@ function syncNodeToEntity(n){
 }
 function setEntityModalMode(editing){
   document.getElementById('entity-img').style.display=editing?'none':document.getElementById('entity-img').style.display;
+  const fallback=document.getElementById('entity-img-fallback');
+  if(fallback&&editing)fallback.style.display='none';
   document.getElementById('entity-note').style.display=editing?'none':'';
   document.getElementById('entity-edit-form').style.display=editing?'':'none';
-  document.getElementById('entity-edit-btn').textContent=editing?'儲存':'編輯';
+  document.getElementById('entity-edit-btn').style.display=editing?'none':'';
+  document.getElementById('entity-save-btn').style.display=editing?'':'none';
+  document.getElementById('entity-cancel-edit-btn').style.display=editing?'':'none';
+  document.getElementById('entity-sync-btn').style.display=editing?'none':document.getElementById('entity-sync-btn').style.display;
+  if(editing)setTimeout(()=>document.getElementById('entity-edit-name')?.focus(),30);
 }
 
 function openQuickEntityModal(){

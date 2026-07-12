@@ -44,3 +44,14 @@ https://drive.google.com/thumbnail?id=FILE_ID&sz=w1200
 ## 注意事項
 
 不要把私人劇情資料、Google Apps Script 部署網址、Google Sheet ID 或任何帳號資訊直接提交到 GitHub。
+## 心智圖管理者模式
+
+- `mindmap.html` 預設是觀看模式，可以縮放、查看節點，但不能拖動板塊或儲存修改。
+- 點「管理者」後，第一次會要求設定管理者密碼；之後輸入同一組密碼即可解鎖拖曳與編輯。
+- 若要避免有 GitHub Pages 連結的人改動雲端心智圖位置，請在 Google Apps Script 的「專案設定 > 指令碼屬性」新增：
+
+```text
+ADMIN_TOKEN=你的管理者密碼
+```
+
+並重新部署 Web App。這樣心智圖位置變更會由 Apps Script 驗證管理者密碼，沒有正確 token 的寫入會被拒絕。

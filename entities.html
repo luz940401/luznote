@@ -43,7 +43,12 @@ textarea.inp{min-height:92px;resize:vertical;line-height:1.7}
 .toolbar .inp{max-width:340px;background:#fff}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
 .card{background:#fff;border:1px solid #e0dbd2;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.card-img-link{display:block;background:#f5f3ef;text-decoration:none;border-bottom:1px solid #e8e2d8}
 .card img{width:100%;height:135px;object-fit:cover;background:#f5f3ef;border-bottom:1px solid #e8e2d8}
+.card-img-link img{display:block;border-bottom:0}
+.card-img-link span{display:none;color:#68460e;background:#fffaf0;padding:14px 12px;font-size:12px}
+.card-img-link.image-error img{display:none}
+.card-img-link.image-error span{display:block}
 .card-body{padding:12px}
 .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#f0ece5;color:#6b5c4c;margin-bottom:7px}
 .name{font-size:16px;font-weight:700;line-height:1.35;margin-bottom:6px;word-break:break-word}
@@ -176,6 +181,11 @@ function normalizeImageUrl(url){
   const raw=(url||'').trim();
   const id=extractDriveFileId(raw);
   return id?`https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200`:raw;
+}
+function openableImageUrl(url){
+  const raw=(url||'').trim();
+  const id=extractDriveFileId(raw);
+  return id?`https://drive.google.com/file/d/${encodeURIComponent(id)}/view?usp=sharing`:raw;
 }
 function readLocalApp(){
   try{return JSON.parse(localStorage.getItem(APP_KEY)||localStorage.getItem(LEGACY_APP_KEY)||'{}');}
@@ -448,7 +458,7 @@ function render(){
   cards.innerHTML=list.map(e=>{
     const ts=TAG_STYLE[e.type]||{bg:'#f0f0f0',color:'#666'};
     return `<article class="card">
-      ${e.imageUrl?`<img src="${esc(e.imageUrl)}" alt="${esc(e.name)}">`:''}
+      ${e.imageUrl?`<a class="card-img-link" href="${esc(openableImageUrl(e.imageUrl))}" target="_blank" rel="noopener"><img src="${esc(e.imageUrl)}" alt="${esc(e.name)}" onerror="this.closest('.card-img-link').classList.add('image-error')"><span>圖片無法顯示，點此開啟原圖</span></a>`:''}
       <div class="card-body">
         <span class="tag" style="background:${ts.bg};color:${ts.color}">${esc(e.type)}</span>
         <div class="name">${esc(e.name)}</div>
