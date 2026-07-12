@@ -441,6 +441,7 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
       <div class="form-group"><div class="form-label">小備註</div><textarea class="inp" id="qe-note" placeholder="外觀、立場、關係、第一次登場..."></textarea></div>
       <div class="modal-btns">
         <button class="btn ghost" onclick="document.getElementById('quick-entity-modal').classList.remove('open')">取消</button>
+        <button class="btn" onclick="saveQuickEntitiesFromSelection()">批量建立</button>
         <button class="btn pri" onclick="saveQuickEntity()">儲存詞條</button>
       </div>
     </div>
@@ -544,6 +545,7 @@ const LEGACY_GS_URL_KEY = 'dnd-gs-url';
 
 let nodes={},rootIds=[],nextId=1,editingId=null,addingChildOf=null,entities=[];
 let selectedEntityText='';
+let selectedEntitySourceText='';
 let activeEntityKey='';
 let dataUpdatedAt='';
 let typeFilter='',statusFilter='';
@@ -687,7 +689,7 @@ async function cloudLoad(options={}) {
       nodes = d.nodes;
       rootIds = d.rootIds;
       nextId = d.nextId;
-      entities = d.entities.length ? d.entities : loadStoredEntities();
+      entities = mergeEntityLists(d.entities, loadStoredEntities());
       dataUpdatedAt = cloudUpdatedAt || nowIso();
       saveEntities();
       Object.values(nodes).forEach(n => {
@@ -819,7 +821,7 @@ function load(){
     const d=localStorage.getItem(APP_KEY)||localStorage.getItem(LEGACY_APP_KEY);
     if(d){
       const p=JSON.parse(d);
-      nodes=p.nodes||{};rootIds=p.rootIds||[];nextId=p.nextId||1;entities=normalizeEntities(p.entities||loadStoredEntities());
+      nodes=p.nodes||{};rootIds=p.rootIds||[];nextId=p.nextId||1;entities=mergeEntityLists(p.entities, loadStoredEntities());
       dataUpdatedAt=p.updatedAt||localStorage.getItem(APP_KEY+'-updatedAt')||nowIso();
       Object.values(nodes).forEach(n=>{
         normalizeNode(n);
@@ -841,6 +843,27 @@ function normalizeEntities(list){
     imageUrl:normalizeImageUrl(e.imageUrl||''),
     created:e.created||new Date().toLocaleDateString('zh-TW')
   }));
+}
+function mergeEntityLists(...lists){
+  const out=[];
+  lists.forEach(list=>{
+    normalizeEntities(list).forEach(e=>{
+      const key=entityNameKey(e.name);
+      const existing=out.find(x=>(e.id&&x.id===e.id)||(key&&entityNameKey(x.name)===key));
+      if(existing){
+        Object.assign(existing,{
+          ...e,
+          note:e.note||existing.note,
+          imageUrl:e.imageUrl||existing.imageUrl,
+          granDate:e.granDate||existing.granDate,
+          created:existing.created||e.created
+        });
+      }else{
+        out.push(e);
+      }
+    });
+  });
+  return out;
 }
 function loadStoredEntities(){
   try{return normalizeEntities(JSON.parse(localStorage.getItem(ENTITIES_KEY)||localStorage.getItem(LEGACY_ENTITIES_KEY)||'[]'));}
@@ -1000,6 +1023,7 @@ function collapseAll(){
 }
 
 function currentData(){
+  entities=mergeEntityLists(loadStoredEntities(),entities);
   return {appVersion:APP_VERSION,nodes,rootIds,nextId,entities,updatedAt:dataUpdatedAt||nowIso()};
 }
 function validateData(d){
@@ -1353,7 +1377,7 @@ function attrEsc(s){return esc(s).replace(/'/g,'&#39;');}
 function cleanEntityName(value){
   return (value||'')
     .toString()
-    .normalize('NFKC')
+    .replace(/\u3000/g,' ')
     .replace(/[\r\n\t]+/g,' ')
     .replace(/\s+/g,' ')
     .replace(/^[\s"'「」『』《》〈〉【】[\]()（）,，.。:：;；!?！？、]+/,'')
@@ -1361,7 +1385,7 @@ function cleanEntityName(value){
     .trim();
 }
 function entityNameKey(value){
-  return cleanEntityName(value).toLocaleLowerCase();
+  return cleanEntityName(value).normalize('NFKC').toLocaleLowerCase();
 }
 function buildImageBlock(imageUrl,title){
   const normalized=normalizeImageUrl(imageUrl);
@@ -1392,18 +1416,6 @@ function buildImageBlock(imageUrl,title){
 }
 
 function mentionCandidates(skipId){
-  const skipNodeId=String(skipId||'').startsWith('node:')?String(skipId).slice(5):skipId;
-  const skipEntityId=String(skipId||'').startsWith('entity:')?String(skipId).slice(7):'';
-  const nodeEntries=Object.values(nodes)
-    .filter(n=>n.id!==skipId && ['NPC','地點','組織'].includes(n.tag) && n.title && n.title.trim().length>=2)
-    .map(n=>({key:'node:'+n.id,name:n.title,type:n.tag,note:n.note,imageUrl:n.imageUrl,created:n.created,nodeId:n.id}));
-  const glossaryEntries=entities
-    .filter(e=>e.name && cleanEntityName(e.name).length>=1)
-    .map(e=>({key:'entity:'+e.id,name:cleanEntityName(e.name),type:e.type,note:e.note,imageUrl:e.imageUrl,created:e.created,entityId:e.id}));
-  return [...glossaryEntries,...nodeEntries]
-    .sort((a,b)=>b.name.length-a.name.length);
-}
-function mentionCandidates(skipId){
   const raw=String(skipId||'');
   const skipNodeId=raw.startsWith('node:')?raw.slice(5):raw;
   const skipEntityId=raw.startsWith('entity:')?raw.slice(7):'';
@@ -1413,7 +1425,7 @@ function mentionCandidates(skipId){
   const glossaryEntries=entities
     .filter(e=>e.id!==skipEntityId && e.name && cleanEntityName(e.name).length>=1)
     .map(e=>({key:'entity:'+e.id,name:cleanEntityName(e.name),type:e.type,note:e.note,imageUrl:e.imageUrl,created:e.created,entityId:e.id}));
-  return [...nodeEntries,...glossaryEntries]
+  return [...glossaryEntries,...nodeEntries]
     .filter(item=>item.name)
     .sort((a,b)=>b.name.length-a.name.length);
 }
@@ -1599,9 +1611,11 @@ function setEntityModalMode(editing){
 }
 
 function openQuickEntityModal(){
-  const name=cleanEntityName(selectedEntityText || window.getSelection().toString());
+  const raw=selectedEntitySourceText || window.getSelection().toString();
+  const names=extractEntityNamesFromText(raw);
+  const name=cleanEntityName(names[0] || selectedEntityText || raw);
   document.getElementById('qe-name').value=name;
-  document.getElementById('qe-type').value='角色';
+  document.getElementById('qe-type').value=guessQuickEntityType(name,raw);
   document.getElementById('qe-custom-type').value='';
   toggleQuickCustomType();
   document.getElementById('qe-note').value='';
@@ -1620,6 +1634,60 @@ function quickEntityType(){
   const custom=document.getElementById('qe-custom-type').value.trim();
   return custom||'自訂';
 }
+function extractEntityNamesFromText(text){
+  const raw=(text||'').toString();
+  const names=[];
+  const seen=new Set();
+  const add=value=>{
+    const name=cleanEntityName(value);
+    const key=entityNameKey(name);
+    if(!name || seen.has(key))return;
+    seen.add(key);
+    names.push(name.slice(0,80));
+  };
+  raw.replace(/「([^」\n]{1,80})」/g,(match,value)=>{
+    add(value);
+    return match;
+  });
+  if(!names.length)add(raw);
+  return names;
+}
+function guessQuickEntityType(name,sourceText=''){
+  const text=cleanEntityName(name);
+  const source=(sourceText||'').toString();
+  if(/城鎮|城市|地點|小城鎮|城邦|都市/.test(source))return '城鎮';
+  if(/(城|鎮|村|都市|港|堡|塔|門|要塞)$/.test(text) || /都市/.test(text))return '城鎮';
+  return '角色';
+}
+function upsertQuickEntity(name,{type,note='',imageUrl=''}={}){
+  const cleanName=cleanEntityName(name);
+  if(!cleanName)return null;
+  const existing=entities.find(e=>entityNameKey(e.name)===entityNameKey(cleanName));
+  const normalizedImage=normalizeImageUrl(imageUrl);
+  const granDate=extractGranDateFromNote(note);
+  const payload={
+    id:existing?.id||entityUid(),
+    name:cleanName,
+    type:type||guessQuickEntityType(cleanName),
+    imageUrl:normalizedImage,
+    note,
+    granDate,
+    created:existing?.created||new Date().toLocaleDateString('zh-TW')
+  };
+  if(existing){
+    Object.assign(existing,{
+      ...payload,
+      id:existing.id,
+      imageUrl:normalizedImage||existing.imageUrl,
+      note:note||existing.note,
+      granDate:granDate||existing.granDate,
+      created:existing.created||payload.created
+    });
+    return {entity:existing,created:false};
+  }
+  entities.push(payload);
+  return {entity:payload,created:true};
+}
 function saveQuickEntity(){
   const name=cleanEntityName(document.getElementById('qe-name').value);
   document.getElementById('qe-name').value=name;
@@ -1631,26 +1699,51 @@ function saveQuickEntity(){
   }
   const existing=entities.find(e=>entityNameKey(e.name)===entityNameKey(name));
   makeBackup(existing?'更新快速詞條前自動備份':'建立快速詞條前自動備份');
-  const payload={
-    id:existing?.id||entityUid(),
-    name,
+  const result=upsertQuickEntity(name,{
     type,
-    imageUrl:normalizeImageUrl(document.getElementById('qe-img').value),
-    note:document.getElementById('qe-note').value,
-    granDate:extractGranDateFromNote(document.getElementById('qe-note').value),
-    created:existing?.created||new Date().toLocaleDateString('zh-TW')
-  };
-  if(existing) Object.assign(existing,payload);
-  else entities.push(payload);
+    imageUrl:document.getElementById('qe-img').value,
+    note:document.getElementById('qe-note').value
+  });
   saveEntities();
   document.getElementById('quick-entity-modal').classList.remove('open');
   selectedEntityText='';
+  selectedEntitySourceText='';
   save();
   render();
   if(document.getElementById('entity-modal')?.classList.contains('open')&&activeEntityKey){
     openEntityModal(activeEntityKey);
   }
-  alert(existing?`已更新既有詞條：${name}`:`已建立詞條：${name}`);
+  alert(result?.created?`已建立詞條：${name}`:`已更新既有詞條：${name}`);
+}
+function saveQuickEntitiesFromSelection(){
+  const raw=selectedEntitySourceText || window.getSelection().toString() || document.getElementById('qe-name').value;
+  const names=extractEntityNamesFromText(raw).filter(Boolean);
+  if(!names.length){alert('沒有找到可建立的詞條名稱');return;}
+  const type=quickEntityType();
+  if(document.getElementById('qe-type').value==='__custom' && type==='自訂'){
+    alert('請輸入自訂類型名稱');
+    return;
+  }
+  makeBackup('批量建立詞條前自動備份');
+  const note=document.getElementById('qe-note').value;
+  const imageUrl=document.getElementById('qe-img').value;
+  let created=0,updated=0;
+  names.forEach(name=>{
+    const result=upsertQuickEntity(name,{type,note,imageUrl});
+    if(!result)return;
+    if(result.created)created++;
+    else updated++;
+  });
+  saveEntities();
+  document.getElementById('quick-entity-modal').classList.remove('open');
+  selectedEntityText='';
+  selectedEntitySourceText='';
+  save();
+  render();
+  if(document.getElementById('entity-modal')?.classList.contains('open')&&activeEntityKey){
+    openEntityModal(activeEntityKey);
+  }
+  alert(`已處理 ${names.length} 個詞條：新增 ${created}、更新 ${updated}\n${names.join('、')}`);
 }
 
 function buildEditForm(n){
@@ -1763,10 +1856,12 @@ document.addEventListener('mouseup',()=>{
     const anchor=sel.anchorNode?.nodeType===1?sel.anchorNode:sel.anchorNode?.parentElement;
     if(!text || !anchor?.closest?.('.card-note,.entity-note')){
       btn.classList.remove('show');
+      selectedEntitySourceText='';
       return;
     }
     const range=sel.getRangeAt(0).getBoundingClientRect();
     selectedEntityText=text.slice(0,80);
+    selectedEntitySourceText=sel.toString();
     btn.style.left=Math.min(window.innerWidth-120,Math.max(8,range.left))+'px';
     btn.style.top=Math.max(8,range.top-42)+'px';
     btn.classList.add('show');
