@@ -155,6 +155,19 @@ const BASE_TYPES=['角色','城鎮','組織','物品'];
 function uid(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function attrEsc(s){return esc(s).replace(/'/g,'&#39;');}
+function cleanEntityName(value){
+  return (value||'')
+    .toString()
+    .replace(/\u3000/g,' ')
+    .replace(/[\r\n\t]+/g,' ')
+    .replace(/\s+/g,' ')
+    .replace(/^[\s"'「」『』《》〈〉【】[\]()（）,，.。:：;；!?！？、]+/,'')
+    .replace(/[\s"'「」『』《》〈〉【】[\]()（）,，.。:：;；!?！？、]+$/,'')
+    .trim();
+}
+function entityNameKey(value){
+  return cleanEntityName(value).normalize('NFKC').toLocaleLowerCase();
+}
 function nowIso(){return new Date().toISOString();}
 function setSyncStatus(state,text){
   const el=document.getElementById('sync-status');
@@ -243,13 +256,36 @@ function makeBackup(reason){
 function normalize(list){
   return (Array.isArray(list)?list:[]).map(e=>({
     id:e.id||uid(),
-    name:e.name||e.title||'未命名詞條',
+    name:cleanEntityName(e.name||e.title)||'未命名詞條',
     type:e.type||'角色',
     imageUrl:normalizeImageUrl(e.imageUrl||''),
     note:e.note||'',
+    granDate:e.granDate||'',
     sourceNodeId:e.sourceNodeId||'',
     created:e.created||new Date().toLocaleDateString('zh-TW')
   }));
+}
+function mergeEntryLists(...lists){
+  const out=[];
+  lists.forEach(list=>{
+    normalize(list).forEach(e=>{
+      const key=entityNameKey(e.name);
+      const existing=out.find(x=>(e.id&&x.id===e.id)||(key&&entityNameKey(x.name)===key));
+      if(existing){
+        Object.assign(existing,{
+          ...e,
+          note:e.note||existing.note,
+          imageUrl:e.imageUrl||existing.imageUrl,
+          granDate:e.granDate||existing.granDate,
+          sourceNodeId:e.sourceNodeId||existing.sourceNodeId,
+          created:existing.created||e.created
+        });
+      }else{
+        out.push(e);
+      }
+    });
+  });
+  return out;
 }
 function nodeEntityType(tag){
   if(tag==='NPC')return '角色';
@@ -267,7 +303,7 @@ function isNodeEntityCandidate(n){
 }
 function syncNodesIntoEntries(app){
   const nodes=app.nodes||{};
-  entries=normalize(entries);
+  entries=mergeEntryLists(entries);
   let changed=false;
   Object.values(nodes).forEach(n=>{
     if(!isNodeEntityCandidate(n))return;
@@ -306,13 +342,13 @@ function load(){
   try{
     const app=readLocalApp();
     const separate=JSON.parse(localStorage.getItem(DATA_KEY)||localStorage.getItem(LEGACY_DATA_KEY)||'[]');
-    entries=normalize(app.entities?.length?app.entities:separate);
+    entries=mergeEntryLists(app.entities,separate);
     const changed=syncNodesIntoEntries(app);
-    if(changed){
-      writeLocalApp(app);
-      localStorage.setItem(DATA_KEY,JSON.stringify(entries));
-      localStorage.setItem(LEGACY_DATA_KEY,JSON.stringify(entries));
-    }
+    app.entities=entries;
+    if(changed)app.updatedAt=nowIso();
+    writeLocalApp(app);
+    localStorage.setItem(DATA_KEY,JSON.stringify(entries));
+    localStorage.setItem(LEGACY_DATA_KEY,JSON.stringify(entries));
   }catch{entries=[];}
 }
 function saveAll(){
@@ -351,14 +387,19 @@ async function cloudLoad(){
     const res=await fetch(gsUrl,{method:'GET'});
     const json=await res.json();
     if(json.ok&&json.data){
-      const app=JSON.parse(json.data);
-      entries=normalize(app.entities||[]);
+      const localApp=readLocalApp();
+      const cloudApp=JSON.parse(json.data);
+      const app=(localApp.nodes||localApp.rootIds||localApp.entities)?localApp:cloudApp;
+      const separate=JSON.parse(localStorage.getItem(DATA_KEY)||localStorage.getItem(LEGACY_DATA_KEY)||'[]');
+      entries=mergeEntryLists(cloudApp.entities,localApp.entities,separate,entries);
       const changed=syncNodesIntoEntries(app);
+      app.entities=entries;
+      if(changed)app.updatedAt=nowIso();
       writeLocalApp(app);
       localStorage.setItem(DATA_KEY,JSON.stringify(entries));
       localStorage.setItem(LEGACY_DATA_KEY,JSON.stringify(entries));
       setSyncStatus('ok','已同步');
-      if(changed)scheduleCloudSave(app);
+      scheduleCloudSave(app);
       return true;
     }
     if(json.ok&&!json.data){
@@ -433,20 +474,23 @@ function resetForm(){
   updatePreview();
 }
 function saveEntry(){
-  const name=document.getElementById('name').value.trim();
+  const name=cleanEntityName(document.getElementById('name').value);
+  document.getElementById('name').value=name;
   if(!name){alert('請輸入名稱');return;}
   const type=currentType();
   if(!type){alert('請輸入自訂類型名稱');return;}
   makeBackup(editingId?'編輯詞條前自動備份':'新增詞條前自動備份');
   const old=entries.find(e=>e.id===editingId);
+  const duplicate=entries.find(e=>e.id!==editingId&&entityNameKey(e.name)===entityNameKey(name));
   const data={
-    id:editingId||uid(),
+    id:editingId||duplicate?.id||uid(),
     name,
     type,
     imageUrl:normalizeImageUrl(currentImage()),
     note:document.getElementById('note').value,
-    sourceNodeId:old?.sourceNodeId||'',
-    created:old?.created||new Date().toLocaleDateString('zh-TW')
+    granDate:old?.granDate||duplicate?.granDate||'',
+    sourceNodeId:old?.sourceNodeId||duplicate?.sourceNodeId||'',
+    created:old?.created||duplicate?.created||new Date().toLocaleDateString('zh-TW')
   };
   const idx=entries.findIndex(e=>e.id===data.id);
   if(idx>=0)entries[idx]=data;
