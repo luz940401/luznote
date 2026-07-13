@@ -10,11 +10,14 @@
 4. 依照畫面指示部署 `google-apps-script/Code.gs.example`。
 5. 將 Google Apps Script 的 Web App URL 貼回網頁。
 
+若要沿用既有試算表，請將該試算表完整網址貼到 `Code.gs.example` 最上方的 `SPREADSHEET_SOURCE`，再部署 Apps Script 新版本。
+
 ## 資料儲存
 
 - 網頁檔案由 GitHub Pages 提供。
 - 筆記資料預設先暫存在瀏覽器 `localStorage`。
 - 設定 Google Apps Script 後，資料會同步到 Google Sheets。
+- 雲端 JSON 會自動分段儲存在多個儲存格，避免超過 Google Sheets 單格字元上限。
 - Google Drive 圖片請貼公開分享連結，程式會自動轉成可預覽的圖片網址。
 
 ## Google Drive 圖片

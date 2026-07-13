@@ -245,6 +245,16 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
 }
 #root-drop-zone.active{display:flex}
 #root-drop-zone.hover{border-color:#7a9a6a;color:#5a8a5a;background:#f3fbf5}
+/* 手機只作為雲端閱讀器，避免在小螢幕誤改出另一份本機版本。 */
+body.mobile-cloud-reader .add-box,
+body.mobile-cloud-reader .node-actions,
+body.mobile-cloud-reader .drag-handle,
+body.mobile-cloud-reader #quick-entity-btn,
+body.mobile-cloud-reader #entity-edit-btn,
+body.mobile-cloud-reader #entity-save-btn,
+body.mobile-cloud-reader #entity-cancel-edit-btn,
+body.mobile-cloud-reader #entity-sync-btn{display:none!important}
+body.mobile-cloud-reader .node-row{gap:0}
 </style>
 </head>
 <body>
@@ -260,7 +270,7 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
     <button class="hbtn accent" onclick="expandAll()">全開</button>
     <button class="hbtn accent" onclick="collapseAll()">全收</button>
     <div class="header-divider"></div>
-    <button class="hbtn" onclick="window.open('./entities.html?v=20260712-entities-sync','_blank')">詞條庫</button>
+    <button class="hbtn" onclick="window.open('./entities.html?v=20260713-cloud-authority-fix','_blank')">詞條庫</button>
     <button class="hbtn" onclick="window.open('./mindmap.html','_blank')">心智圖</button>
     <button class="hbtn" onclick="window.open('./timeline.html','_blank')">格蘭歷大綱</button>
     <button class="hbtn" onclick="syncNow()">同步</button>
@@ -549,6 +559,7 @@ let selectedEntitySourceText='';
 let activeEntityKey='';
 let dataUpdatedAt='';
 let typeFilter='',statusFilter='';
+const MOBILE_CLOUD_READER=window.matchMedia('(pointer: coarse)').matches&&window.matchMedia('(max-width: 900px)').matches;
 
 // ─────────────────────────────────────────────
 //  雲端同步（Google Apps Script）
@@ -676,6 +687,7 @@ async function cloudLoad(options={}) {
     const json = await res.json();
     if (json.ok && json.data) {
       const d = validateData(JSON.parse(json.data));
+      const imageFallbacks=options.authoritative?null:collectImageFallbacks();
       const cloudUpdatedAt = d.updatedAt || json.updatedAt || '';
       if(options.promptConflict!==false && hasUnsyncedChanges() && dataUpdatedAt && cloudUpdatedAt && new Date(dataUpdatedAt) > new Date(cloudUpdatedAt)){
         const useCloud = confirm('本機有尚未同步的變更，而且比雲端更新。按「確定」載入雲端；按「取消」保留本機並上傳。');
@@ -689,7 +701,10 @@ async function cloudLoad(options={}) {
       nodes = d.nodes;
       rootIds = d.rootIds;
       nextId = d.nextId;
-      entities = mergeEntityLists(d.entities, loadStoredEntities());
+      entities = options.authoritative
+        ? normalizeEntities(d.entities)
+        : mergeEntityLists(d.entities, loadStoredEntities());
+      const recoveredImages=imageFallbacks?restoreMissingImageUrls(imageFallbacks):0;
       dataUpdatedAt = cloudUpdatedAt || nowIso();
       saveEntities();
       Object.values(nodes).forEach(n => {
@@ -699,10 +714,36 @@ async function cloudLoad(options={}) {
       lastSyncTime = new Date();
       updateSyncTimeDisplay();
       clearDirty();
-      setSyncStatus('ok', '已同步');
+      if(recoveredImages){
+        touchData();
+        localSave();
+        setSyncStatus('saving',`已找回 ${recoveredImages} 個圖片網址，正在同步…`);
+        scheduleCloudSave(50);
+      }else{
+        setSyncStatus('ok', '已同步');
+      }
       return true;
     } else if (json.ok && !json.data) {
-      setSyncStatus('ok', '雲端為空');
+      if(options.authoritative){
+        // 手機雲端唯讀：雲端確實為空時清掉手機舊快取，避免顯示不同內容。
+        nodes={};rootIds=[];nextId=1;entities=[];
+        dataUpdatedAt=json.updatedAt||nowIso();
+        saveEntities();
+        clearDirty();
+        setSyncStatus('ok','雲端為空');
+        return true;
+      }
+      const recoveredImages=restoreMissingImageUrls(collectImageFallbacks());
+      if(recoveredImages){touchData();localSave();}
+      const hasLocalContent=Object.keys(nodes).length>0||rootIds.length>0||entities.length>0;
+      if(hasLocalContent){
+        setSyncStatus('saving',recoveredImages
+          ? `已找回 ${recoveredImages} 個圖片網址，正在建立雲端資料…`
+          : '雲端為空，正在上傳本機資料…');
+        scheduleCloudSave(50);
+        return false;
+      }
+      setSyncStatus('ok','雲端為空');
       return true;
     } else {
       setSyncStatus('err', '讀取失敗');
@@ -715,19 +756,23 @@ async function cloudLoad(options={}) {
 }
 
 function scheduleCloudSave(delay=1200) {
+  // 即使還沒設定雲端，也要記住本機有較新的內容。
+  // 之後設定雲端或重新整理時，才不會被舊雲端資料覆蓋。
+  markDirty();
   if (!gsUrl) {
     setSyncStatus('no-url', '已暫存本機');
     return;
   }
-  markDirty();
   setSyncStatus('saving', '儲存中…');
   clearTimeout(syncTimer);
   syncTimer = setTimeout(doCloudSave, delay);
 }
 
 async function doCloudSave() {
-  if (!gsUrl) return;
+  if (!gsUrl) return false;
+  clearTimeout(syncTimer);
   try {
+    const sentUpdatedAt=dataUpdatedAt;
     const value = JSON.stringify(currentData());
     const params = new URLSearchParams();
     params.append('value', value);
@@ -737,18 +782,36 @@ async function doCloudSave() {
     });
     const json = await res.json();
     if (json.ok) {
-      if(json.updatedAt)dataUpdatedAt=json.updatedAt;
+      const unchangedSinceRequest=dataUpdatedAt===sentUpdatedAt;
+      if(unchangedSinceRequest&&json.updatedAt)dataUpdatedAt=json.updatedAt;
       lastSyncTime = new Date();
       updateSyncTimeDisplay();
       localSave();
-      clearDirty();
-      setSyncStatus('ok', '已同步');
+      if(unchangedSinceRequest){
+        clearDirty();
+        setSyncStatus('ok', '已同步');
+      }else{
+        // 上一個請求進行期間又有新修改，保留待同步狀態並立刻補送新版。
+        setSyncStatus('saving','偵測到較新的修改，繼續同步…');
+        scheduleCloudSave(50);
+      }
+      return true;
     } else {
       setSyncStatus('err', '儲存失敗');
+      return false;
     }
   } catch (e) {
     setSyncStatus('err', '連線失敗');
+    return false;
   }
+}
+
+async function finishImportantSave(){
+  // 建立詞條後立即完成雲端寫入，避免延遲期間重整或關頁造成遺失。
+  if(!gsUrl)return {synced:false,localOnly:true};
+  setSyncStatus('saving','儲存中…');
+  const synced=await doCloudSave();
+  return {synced,localOnly:false};
 }
 
 function updateSyncTimeDisplay() {
@@ -772,11 +835,20 @@ async function saveGsUrl() {
   gsUrl = val;
   localStorage.setItem(GS_URL_KEY, gsUrl);
   document.getElementById('url-modal').classList.remove('open');
-  const loaded = await cloudLoad({promptConflict:false});
-  if (loaded) { localSave(); render(); }
-  else {
-    // 雲端空的，把本地資料推上去
-    scheduleCloudSave();
+  if(MOBILE_CLOUD_READER){
+    clearDirty();
+    const loaded=await cloudLoad({promptConflict:false,authoritative:true});
+    if(loaded){localSave();render();}
+  }else if(hasUnsyncedChanges()){
+    const saved=await doCloudSave();
+    if(saved)render();
+  }else{
+    const loaded = await cloudLoad({promptConflict:false});
+    if (loaded) { localSave(); render(); }
+    else {
+      // 雲端空的，把本地資料推上去
+      scheduleCloudSave();
+    }
   }
 }
 
@@ -791,7 +863,11 @@ function clearGsUrl() {
 
 async function syncNow(){
   if(!gsUrl){openUrlModal();return;}
-  if(hasUnsyncedChanges()){
+  if(MOBILE_CLOUD_READER){
+    clearDirty();
+    const loaded=await cloudLoad({promptConflict:false,authoritative:true});
+    if(loaded){localSave();render();}
+  }else if(hasUnsyncedChanges()){
     setSyncStatus('saving','立即同步…');
     await doCloudSave();
   }else{
@@ -811,9 +887,20 @@ function localSave(){
 }
 
 function save(options={touch:true}){
+  // 手機閱讀模式的展開／收合狀態只留在該手機，不回寫雲端。
+  if(MOBILE_CLOUD_READER){localSave();return;}
   if(options.touch)touchData();
   localSave();
   scheduleCloudSave();
+}
+
+function enableMobileCloudReader(){
+  if(!MOBILE_CLOUD_READER)return;
+  document.body.classList.add('mobile-cloud-reader');
+  document.querySelectorAll('#header-actions button').forEach(btn=>{
+    const action=btn.getAttribute('onclick')||'';
+    if(/openBackupModal|exportData|\.click\(\)|clr-modal/.test(action))btn.style.display='none';
+  });
 }
 
 function load(){
@@ -930,7 +1017,9 @@ function seed(){
   nodes[r].children.push(n3);
   const n3a=mk('密文解讀','Talia 識破了第一層加密，發現了一組座標。','事件',n3,4);
   nodes[n3].children.push(n3a);
-  save();
+  // 範例內容不是使用者修改，不應被當成待同步資料蓋過既有雲端內容。
+  touchData();
+  localSave();
 }
 
 // ─────────────────────────────────────────────
@@ -1387,6 +1476,49 @@ function cleanEntityName(value){
 function entityNameKey(value){
   return cleanEntityName(value).normalize('NFKC').toLocaleLowerCase();
 }
+function collectImageFallbacks(){
+  const found={nodeById:{},nodeByTitle:{},entityById:{},entityByName:{}};
+  const remember=(bucket,key,url)=>{
+    const clean=(url||'').toString().trim();
+    if(key&&clean&&!bucket[key])bucket[key]=clean;
+  };
+  const addData=data=>{
+    if(!data||typeof data!=='object')return;
+    Object.values(data.nodes||{}).forEach(n=>{
+      remember(found.nodeById,n.id,n.imageUrl);
+      remember(found.nodeByTitle,entityNameKey(n.title),n.imageUrl);
+    });
+    (Array.isArray(data.entities)?data.entities:[]).forEach(e=>{
+      remember(found.entityById,e.id,e.imageUrl);
+      remember(found.entityByName,entityNameKey(e.name||e.title),e.imageUrl);
+    });
+  };
+  // 目前記憶體與獨立詞條快取優先，接著由新到舊檢查自動備份。
+  addData({nodes,entities});
+  addData({entities:loadStoredEntities()});
+  Object.keys(localStorage)
+    .filter(key=>key.startsWith(BACKUP_PREFIX)||key.startsWith(LEGACY_BACKUP_PREFIX))
+    .sort().reverse()
+    .forEach(key=>{
+      try{addData(JSON.parse(localStorage.getItem(key)||'{}').data);}
+      catch(e){console.warn('略過無法讀取的圖片備份',key,e);}
+    });
+  return found;
+}
+function restoreMissingImageUrls(found){
+  let recovered=0;
+  Object.values(nodes).forEach(n=>{
+    if(n.imageUrl)return;
+    const fallback=found.nodeById[n.id]||found.nodeByTitle[entityNameKey(n.title)];
+    if(fallback){n.imageUrl=normalizeImageUrl(fallback);recovered++;}
+  });
+  entities.forEach(e=>{
+    if(e.imageUrl)return;
+    const fallback=found.entityById[e.id]||found.entityByName[entityNameKey(e.name)];
+    if(fallback){e.imageUrl=normalizeImageUrl(fallback);recovered++;}
+  });
+  return recovered;
+}
 function buildImageBlock(imageUrl,title){
   const normalized=normalizeImageUrl(imageUrl);
   if(!normalized)return null;
@@ -1688,7 +1820,7 @@ function upsertQuickEntity(name,{type,note='',imageUrl=''}={}){
   entities.push(payload);
   return {entity:payload,created:true};
 }
-function saveQuickEntity(){
+async function saveQuickEntity(){
   const name=cleanEntityName(document.getElementById('qe-name').value);
   document.getElementById('qe-name').value=name;
   if(!name){alert('請輸入詞條名稱');return;}
@@ -1710,12 +1842,15 @@ function saveQuickEntity(){
   selectedEntitySourceText='';
   save();
   render();
+  const persistence=await finishImportantSave();
   if(document.getElementById('entity-modal')?.classList.contains('open')&&activeEntityKey){
     openEntityModal(activeEntityKey);
   }
-  alert(result?.created?`已建立詞條：${name}`:`已更新既有詞條：${name}`);
+  const action=result?.created?`已建立詞條：${name}`:`已更新既有詞條：${name}`;
+  const suffix=persistence.localOnly?'\n目前只儲存在這台裝置；若要讓手機讀取，請先設定雲端同步。':(!persistence.synced?'\n已保存在本機，但雲端同步失敗，請按右上角「同步」重試。':'');
+  alert(action+suffix);
 }
-function saveQuickEntitiesFromSelection(){
+async function saveQuickEntitiesFromSelection(){
   const raw=selectedEntitySourceText || window.getSelection().toString() || document.getElementById('qe-name').value;
   const names=extractEntityNamesFromText(raw).filter(Boolean);
   if(!names.length){alert('沒有找到可建立的詞條名稱');return;}
@@ -1740,10 +1875,12 @@ function saveQuickEntitiesFromSelection(){
   selectedEntitySourceText='';
   save();
   render();
+  const persistence=await finishImportantSave();
   if(document.getElementById('entity-modal')?.classList.contains('open')&&activeEntityKey){
     openEntityModal(activeEntityKey);
   }
-  alert(`已處理 ${names.length} 個詞條：新增 ${created}、更新 ${updated}\n${names.join('、')}`);
+  const suffix=persistence.localOnly?'\n目前只儲存在這台裝置；若要讓手機讀取，請先設定雲端同步。':(!persistence.synced?'\n已保存在本機，但雲端同步失敗，請按右上角「同步」重試。':'');
+  alert(`已處理 ${names.length} 個詞條：新增 ${created}、更新 ${updated}\n${names.join('、')}${suffix}`);
 }
 
 function buildEditForm(n){
@@ -2150,6 +2287,7 @@ function moveNode(id, targetId, mode) {
 // ─────────────────────────────────────────────
 async function init() {
   document.getElementById('qe-type').addEventListener('change',toggleQuickCustomType);
+  enableMobileCloudReader();
   load(); // 先讀本地快取，立刻顯示
   applyRootTemplate();
   initRootSw();
@@ -2157,13 +2295,25 @@ async function init() {
 
   if (gsUrl) {
     setSyncStatus('saving', '連接雲端…');
-    const loaded = await cloudLoad();
-    if (loaded) {
-      localSave();
-      render();
+    if(MOBILE_CLOUD_READER){
+      // 手機以雲端為唯一來源，不採用或回傳手機上的舊快取。
+      clearDirty();
+      const loaded=await cloudLoad({promptConflict:false,authoritative:true});
+      if(loaded){localSave();render();}
+    }else if(hasUnsyncedChanges()){
+      // 上次可能在延遲同步完成前就關頁；先送出本機完整版本。
+      const saved=await doCloudSave();
+      if(!saved)setSyncStatus('err','本機已保留，雲端同步失敗');
+    }else{
+      const loaded = await cloudLoad();
+      if (loaded) {
+        localSave();
+        render();
+      }
     }
   } else {
-    setSyncStatus('no-url', '未連結雲端');
+    setSyncStatus('no-url', MOBILE_CLOUD_READER?'手機閱讀模式：請設定雲端':'未連結雲端');
+    if(MOBILE_CLOUD_READER)setTimeout(openUrlModal,100);
   }
   setTimeout(focusNodeFromHash,80);
 }

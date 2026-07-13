@@ -55,6 +55,8 @@ textarea.inp{min-height:92px;resize:vertical;line-height:1.7}
 .note{font-size:13px;color:#625a50;line-height:1.6;white-space:pre-wrap;word-break:break-word;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;min-height:20px}
 .card-actions{display:flex;gap:6px;margin-top:12px}
 .empty{text-align:center;padding:52px 20px;color:#bbb;border:1px dashed #d8d0c5;border-radius:12px;background:#faf8f4}
+body.mobile-cloud-reader main>.panel:first-child,
+body.mobile-cloud-reader .card-actions{display:none!important}
 @media(max-width:640px){
   header{flex-wrap:wrap;padding:10px 12px}
   .logo{width:100%;flex:auto}
@@ -134,12 +136,14 @@ textarea.inp{min-height:92px;resize:vertical;line-height:1.7}
 
 <script>
 let entries=[],editingId=null;
+const MOBILE_CLOUD_READER=window.matchMedia('(pointer: coarse)').matches&&window.matchMedia('(max-width: 900px)').matches;
 const DATA_KEY='adventure-notes-entities-v1';
 const LEGACY_DATA_KEY='dnd-entities';
 const APP_KEY='adventure-notes-v1';
 const LEGACY_APP_KEY='dnd-v3';
 const BACKUP_PREFIX='adventure-notes-backup-';
 const LEGACY_BACKUP_PREFIX='dnd-backup-';
+const DIRTY_KEY='adventure-notes-dirty';
 const GS_URL_KEY='adventure-notes-gs-url';
 const LEGACY_GS_URL_KEY='dnd-gs-url';
 let gsUrl=localStorage.getItem(GS_URL_KEY)||localStorage.getItem(LEGACY_GS_URL_KEY)||'';
@@ -169,6 +173,9 @@ function entityNameKey(value){
   return cleanEntityName(value).normalize('NFKC').toLocaleLowerCase();
 }
 function nowIso(){return new Date().toISOString();}
+function markDirty(){localStorage.setItem(DIRTY_KEY,'1');}
+function clearDirty(){localStorage.removeItem(DIRTY_KEY);}
+function hasUnsyncedChanges(){return localStorage.getItem(DIRTY_KEY)==='1';}
 function setSyncStatus(state,text){
   const el=document.getElementById('sync-status');
   const tx=document.getElementById('sync-text');
@@ -387,22 +394,38 @@ async function cloudLoad(){
     const res=await fetch(gsUrl,{method:'GET'});
     const json=await res.json();
     if(json.ok&&json.data){
-      const localApp=readLocalApp();
       const cloudApp=JSON.parse(json.data);
-      const app=(localApp.nodes||localApp.rootIds||localApp.entities)?localApp:cloudApp;
-      const separate=JSON.parse(localStorage.getItem(DATA_KEY)||localStorage.getItem(LEGACY_DATA_KEY)||'[]');
-      entries=mergeEntryLists(cloudApp.entities,localApp.entities,separate,entries);
+      // 沒有待同步變更時，雲端才是唯一來源；禁止用舊本機快取回寫覆蓋雲端。
+      const app=cloudApp;
+      entries=normalize(cloudApp.entities||[]);
       const changed=syncNodesIntoEntries(app);
       app.entities=entries;
       if(changed)app.updatedAt=nowIso();
       writeLocalApp(app);
       localStorage.setItem(DATA_KEY,JSON.stringify(entries));
       localStorage.setItem(LEGACY_DATA_KEY,JSON.stringify(entries));
+      clearDirty();
       setSyncStatus('ok','已同步');
-      scheduleCloudSave(app);
       return true;
     }
     if(json.ok&&!json.data){
+      if(MOBILE_CLOUD_READER){
+        entries=[];
+        const emptyApp={nodes:{},rootIds:[],nextId:1,entities:[],updatedAt:json.updatedAt||nowIso()};
+        writeLocalApp(emptyApp);
+        localStorage.setItem(DATA_KEY,'[]');
+        localStorage.setItem(LEGACY_DATA_KEY,'[]');
+        setSyncStatus('ok','雲端為空');
+        return true;
+      }
+      const localApp=readLocalApp();
+      if(entries.length||Object.keys(localApp.nodes||{}).length){
+        localApp.entities=entries;
+        localApp.updatedAt=nowIso();
+        setSyncStatus('saving','雲端為空，正在上傳本機資料');
+        scheduleCloudSave(localApp);
+        return false;
+      }
       setSyncStatus('ok','雲端為空');
       return false;
     }
@@ -413,22 +436,26 @@ async function cloudLoad(){
   return false;
 }
 function scheduleCloudSave(app){
+  markDirty();
   if(!gsUrl){setSyncStatus('err','本機暫存');return;}
   setSyncStatus('saving','儲存中');
   clearTimeout(syncTimer);
   syncTimer=setTimeout(()=>doCloudSave(app),900);
 }
 async function doCloudSave(app){
-  if(!gsUrl)return;
+  if(!gsUrl)return false;
+  clearTimeout(syncTimer);
   try{
     const params=new URLSearchParams();
     params.append('value',JSON.stringify(app||readLocalApp()));
     const res=await fetch(gsUrl,{method:'POST',body:params});
     const json=await res.json();
-    if(json.ok)setSyncStatus('ok','已同步');
-    else setSyncStatus('err','儲存失敗');
+    if(json.ok){clearDirty();setSyncStatus('ok','已同步');return true;}
+    setSyncStatus('err','儲存失敗');
+    return false;
   }catch(e){
     setSyncStatus('err','連線失敗');
+    return false;
   }
 }
 function currentImage(){return document.getElementById('image-url').value.trim();}
@@ -552,12 +579,19 @@ function render(){
 document.getElementById('image-url').addEventListener('input',updatePreview);
 document.getElementById('type').addEventListener('change',toggleCustomType);
 async function init(){
+  if(MOBILE_CLOUD_READER)document.body.classList.add('mobile-cloud-reader');
   load();
   resetForm();
   render();
   if(gsUrl){
-    const loaded=await cloudLoad();
-    if(loaded){resetForm();render();}
+    if(!MOBILE_CLOUD_READER&&hasUnsyncedChanges()){
+      setSyncStatus('saving','上傳未同步的本機資料');
+      const saved=await doCloudSave(readLocalApp());
+      if(saved){resetForm();render();}
+    }else{
+      const loaded=await cloudLoad();
+      if(loaded){resetForm();render();}
+    }
   }else{
     setSyncStatus('err','未連結雲端');
   }
