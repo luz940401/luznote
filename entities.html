@@ -31,6 +31,10 @@ main{max-width:980px;margin:0 auto;padding:24px 16px 80px}
 .inp,.sel{width:100%;background:#f7f5f2;border:1px solid #e0dbd4;border-radius:7px;color:#1a1a1a;font-family:'Noto Sans TC',sans-serif;font-size:14px;padding:9px 12px;outline:none}
 .inp:focus,.sel:focus{border-color:#a09070;background:#fff}
 textarea.inp{min-height:92px;resize:vertical;line-height:1.7}
+.rich-note-toolbar{display:flex;align-items:center;gap:5px;margin:0 0 5px}
+.rich-note-tool{width:31px;height:28px;border:1px solid #d8d0c4;border-radius:6px;background:#fff;color:#403a32;font:600 14px 'Noto Sans TC',sans-serif;cursor:pointer}
+.rich-note-tool:hover{border-color:#a09070;background:#faf7f1}
+.rich-note-hint{font-size:11px;color:#aaa;margin-left:3px}
 .label{font-size:11px;color:#aaa;font-weight:500;letter-spacing:.06em;margin-bottom:4px}
 .field{display:flex;flex-direction:column}
 .avatar-row{display:flex;gap:10px;align-items:flex-start}
@@ -110,6 +114,7 @@ body.mobile-cloud-reader .card-actions{display:none!important}
       </div>
       <div class="field form-full">
         <div class="label">小備註</div>
+        <div class="rich-note-toolbar"><button type="button" class="rich-note-tool" onclick="formatNoteSelection('note','bold')" title="粗體"><strong>B</strong></button><button type="button" class="rich-note-tool" onclick="formatNoteSelection('note','underline')" title="底線"><u>U</u></button><span class="rich-note-hint">先選取文字，再套用格式</span></div>
         <textarea class="inp" id="note" placeholder="外觀、個性、陣營、與玩家關係、第一次登場、重要秘密..."></textarea>
       </div>
       <div class="actions form-full">
@@ -160,6 +165,28 @@ const BASE_TYPES=['角色','城鎮','組織','物品'];
 function uid(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function attrEsc(s){return esc(s).replace(/'/g,'&#39;');}
+function formatNoteSelection(textareaId,style){
+  const input=document.getElementById(textareaId);if(!input)return;
+  const pair=style==='underline'?['[u]','[/u]']:['[b]','[/b]'];
+  const start=input.selectionStart??input.value.length;
+  const end=input.selectionEnd??start;
+  const selected=input.value.slice(start,end);
+  const alreadyWrapped=input.value.slice(Math.max(0,start-pair[0].length),start).toLowerCase()===pair[0]&&input.value.slice(end,end+pair[1].length).toLowerCase()===pair[1];
+  if(alreadyWrapped){
+    input.setRangeText(selected,start-pair[0].length,end+pair[1].length,'select');
+  }else{
+    const placeholder=selected||(style==='underline'?'底線文字':'粗體文字');
+    input.setRangeText(pair[0]+placeholder+pair[1],start,end,'end');
+    input.setSelectionRange(start+pair[0].length,start+pair[0].length+placeholder.length);
+  }
+  input.focus();
+  input.dispatchEvent(new Event('input',{bubbles:true}));
+}
+function renderNoteFormatting(text){
+  return esc(String(text||''))
+    .replace(/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1</strong>')
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>');
+}
 function cleanEntityName(value){
   return (value||'')
     .toString()
@@ -581,7 +608,7 @@ function render(){
       <div class="card-body">
         <span class="tag" style="background:${ts.bg};color:${ts.color}">${esc(e.type)}</span>
         <div class="name">${esc(e.name)}</div>
-        <div class="note">${esc(e.note)||'尚未填寫備註。'}</div>
+        <div class="note">${e.note?renderNoteFormatting(e.note):'尚未填寫備註。'}</div>
         <div class="card-actions">
           <button class="btn" onclick="editEntry('${e.id}')">編輯</button>
           <button class="btn red" onclick="deleteEntry('${e.id}')">刪除</button>

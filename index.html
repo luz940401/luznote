@@ -175,6 +175,10 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
 .form-row{display:flex;gap:8px;flex-wrap:wrap}
 .form-group{display:flex;flex-direction:column;flex:1;min-width:110px}
 .edit-form textarea{min-height:80px;resize:vertical;line-height:1.6}
+.rich-note-toolbar{display:flex;align-items:center;gap:5px;margin:0 0 5px}
+.rich-note-tool{width:31px;height:28px;border:1px solid #d8d0c4;border-radius:6px;background:#fff;color:#403a32;font:600 14px 'Noto Sans TC',sans-serif;cursor:pointer}
+.rich-note-tool:hover{border-color:#a09070;background:#faf7f1}
+.rich-note-hint{font-size:11px;color:#aaa;margin-left:3px}
 .form-btns{display:flex;gap:6px}
 .child-form{background:#faf8f4;border:1px solid #e0dbd2;border-radius:10px;padding:13px 14px;margin-top:6px;display:flex;flex-direction:column;gap:8px}
 .children{padding-left:20px;margin-top:6px;display:flex;flex-direction:column;gap:6px}
@@ -419,7 +423,7 @@ body.mobile-cloud-reader .node-row{gap:0}
         </select></div>
       </div>
       <div class="form-group"><div class="form-label">Google Drive 圖片連結</div><input class="inp" id="entity-edit-img" placeholder="貼上 Google Drive 分享連結或圖片網址"><div class="hint-text">Drive 圖片請設定為「知道連結的任何人可查看」。</div></div>
-      <div class="form-group"><div class="form-label">描述內容</div><textarea class="inp" id="entity-edit-note" placeholder="外觀、立場、關係、劇情描述..."></textarea></div>
+      <div class="form-group"><div class="form-label">描述內容</div><div class="rich-note-toolbar"><button type="button" class="rich-note-tool" onclick="formatNoteSelection('entity-edit-note','bold')" title="粗體"><strong>B</strong></button><button type="button" class="rich-note-tool" onclick="formatNoteSelection('entity-edit-note','underline')" title="底線"><u>U</u></button><span class="rich-note-hint">先選取文字，再套用格式</span></div><textarea class="inp" id="entity-edit-note" placeholder="外觀、立場、關係、劇情描述..."></textarea></div>
     </div>
     <div class="modal-btns" style="margin-top:16px">
       <button class="btn ghost" onclick="document.getElementById('entity-modal').classList.remove('open')">關閉</button>
@@ -448,7 +452,7 @@ body.mobile-cloud-reader .node-row{gap:0}
       </div>
       <div class="form-group" id="qe-custom-wrap" style="display:none"><div class="form-label">自訂類型</div><input class="inp" id="qe-custom-type" placeholder="例如：神祇、派系、怪物"></div>
       <div class="form-group"><div class="form-label">Google Drive 圖片連結</div><input class="inp" id="qe-img" placeholder="貼上 Google Drive 分享連結或圖片網址"></div>
-      <div class="form-group"><div class="form-label">小備註</div><textarea class="inp" id="qe-note" placeholder="外觀、立場、關係、第一次登場..."></textarea></div>
+      <div class="form-group"><div class="form-label">小備註</div><div class="rich-note-toolbar"><button type="button" class="rich-note-tool" onclick="formatNoteSelection('qe-note','bold')" title="粗體"><strong>B</strong></button><button type="button" class="rich-note-tool" onclick="formatNoteSelection('qe-note','underline')" title="底線"><u>U</u></button><span class="rich-note-hint">先選取文字，再套用格式</span></div><textarea class="inp" id="qe-note" placeholder="外觀、立場、關係、第一次登場..."></textarea></div>
       <div class="modal-btns">
         <button class="btn ghost" onclick="document.getElementById('quick-entity-modal').classList.remove('open')">取消</button>
         <button class="btn" onclick="saveQuickEntitiesFromSelection()">批量建立</button>
@@ -1275,7 +1279,7 @@ function render(){
         if(titleEl&&searchQuery)titleEl.innerHTML=highlightText(nodes[id].title,searchQuery);
         // Highlight note
         const noteEl=el.querySelector('.card-note');
-        if(noteEl&&searchQuery)noteEl.innerHTML=highlightText(nodes[id].note,searchQuery);
+        if(noteEl&&searchQuery)noteEl.innerHTML=renderRichNote(nodes[id].note,id,searchQuery);
         const granEl=el.querySelector('.gran-date-value');
         if(granEl&&searchQuery&&(nodes[id].granDate||'').toLowerCase().includes(searchQuery)){
           granEl.innerHTML=highlightText(nodes[id].granDate,searchQuery);
@@ -1438,7 +1442,7 @@ function rNode(id,depth){
     if(n.note){
       const noteEl=document.createElement('div');
       noteEl.className='card-note';
-      noteEl.innerHTML=linkMentions(n.note,id);
+      noteEl.innerHTML=renderRichNote(n.note,id,searchQuery);
       body.appendChild(noteEl);
     }
   }
@@ -1467,6 +1471,50 @@ function tagOpts(sel){
 }
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function attrEsc(s){return esc(s).replace(/'/g,'&#39;');}
+function richNoteToolbar(textareaId){
+  const id=attrEsc(textareaId);
+  return `<div class="rich-note-toolbar"><button type="button" class="rich-note-tool" onclick="formatNoteSelection('${id}','bold')" title="粗體"><strong>B</strong></button><button type="button" class="rich-note-tool" onclick="formatNoteSelection('${id}','underline')" title="底線"><u>U</u></button><span class="rich-note-hint">先選取文字，再套用格式</span></div>`;
+}
+function formatNoteSelection(textareaId,style){
+  const input=document.getElementById(textareaId);if(!input)return;
+  const pair=style==='underline'?['[u]','[/u]']:['[b]','[/b]'];
+  const start=input.selectionStart??input.value.length;
+  const end=input.selectionEnd??start;
+  const selected=input.value.slice(start,end);
+  const alreadyWrapped=input.value.slice(Math.max(0,start-pair[0].length),start).toLowerCase()===pair[0]&&input.value.slice(end,end+pair[1].length).toLowerCase()===pair[1];
+  if(alreadyWrapped){
+    input.setRangeText(selected,start-pair[0].length,end+pair[1].length,'select');
+  }else{
+    const placeholder=selected||(style==='underline'?'底線文字':'粗體文字');
+    input.setRangeText(pair[0]+placeholder+pair[1],start,end,'end');
+    input.setSelectionRange(start+pair[0].length,start+pair[0].length+placeholder.length);
+  }
+  input.focus();
+  input.dispatchEvent(new Event('input',{bubbles:true}));
+}
+function highlightNotePlainText(text,query){
+  const raw=String(text||'');
+  if(!query)return esc(raw);
+  const escapedQ=String(query).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const pattern=new RegExp(escapedQ,'gi');
+  let out='',last=0;
+  raw.replace(pattern,(match,offset)=>{
+    out+=esc(raw.slice(last,offset));
+    out+=`<mark class="search-highlight">${esc(match)}</mark>`;
+    last=offset+match.length;
+    return match;
+  });
+  out+=esc(raw.slice(last));
+  return out;
+}
+function applyNoteFormatting(html){
+  return String(html||'')
+    .replace(/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1</strong>')
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>');
+}
+function renderRichNote(text,skipId,query){
+  return applyNoteFormatting(linkMentions(String(text||''),skipId,query));
+}
 function cleanEntityName(value){
   return (value||'')
     .toString()
@@ -1565,20 +1613,20 @@ function mentionCandidates(skipId){
     .filter(item=>item.name)
     .sort((a,b)=>b.name.length-a.name.length);
 }
-function linkMentions(text,skipId){
+function linkMentions(text,skipId,query){
   const candidates=mentionCandidates(skipId);
-  if(!candidates.length)return esc(text);
+  if(!candidates.length)return highlightNotePlainText(text,query);
   const pattern=new RegExp(candidates.map(n=>n.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
   let out='',last=0;
   text.replace(pattern,(match,offset)=>{
     const item=candidates.find(n=>n.name===match);
     if(!item)return match;
-    out+=esc(text.slice(last,offset));
-    out+=`<button class="mention-link" onclick="openEntityModal('${attrEsc(item.key)}')" title="查看 ${attrEsc(item.name)}">${esc(match)}</button>`;
+    out+=highlightNotePlainText(text.slice(last,offset),query);
+    out+=`<button class="mention-link" onclick="openEntityModal('${attrEsc(item.key)}')" title="查看 ${attrEsc(item.name)}">${highlightNotePlainText(match,query)}</button>`;
     last=offset+match.length;
     return match;
   });
-  out+=esc(text.slice(last));
+  out+=highlightNotePlainText(text.slice(last),query);
   return out;
 }
 
@@ -1609,7 +1657,7 @@ function openEntityModal(id){
     img.onclick=null;
     if(fallback)fallback.style.display='none';
   }
-  document.getElementById('entity-note').innerHTML=item.note?linkMentions(item.note,id):'尚未填寫備註。';
+  document.getElementById('entity-note').innerHTML=item.note?renderRichNote(item.note,id):'尚未填寫備註。';
   document.getElementById('entity-edit-name').value=item.name||'';
   document.getElementById('entity-edit-type').value=[...document.getElementById('entity-edit-type').options].some(o=>o.value===item.type)?item.type:'角色';
   document.getElementById('entity-edit-img').value=item.imageUrl||'';
@@ -1898,7 +1946,7 @@ function buildEditForm(n){
       <div class="form-group" style="flex:0;min-width:100px"><div class="form-label">狀態</div><select class="sel" id="ef-status-${n.id}">${statusOpts(n.status||'進行中')}</select></div>
     </div>
     <div class="form-group"><div class="form-label">Google Drive 圖片連結</div><input class="inp" id="ef-img-${n.id}" value="${esc(n.imageUrl||'')}" placeholder="貼上 Google Drive 分享連結或圖片網址"><div class="hint-text">Drive 檔案權限需設為「知道連結的任何人可查看」。</div></div>
-    <div class="form-group"><div class="form-label">筆記內容</div><textarea class="inp" id="ef-n-${n.id}" placeholder="詳細記錄...">${esc(n.note)}</textarea></div>
+    <div class="form-group"><div class="form-label">筆記內容</div>${richNoteToolbar('ef-n-'+n.id)}<textarea class="inp" id="ef-n-${n.id}" placeholder="詳細記錄...">${esc(n.note)}</textarea></div>
     <div><div class="form-label">節點顏色</div><div class="swatches" id="${swId}"></div></div>
     <div class="form-btns">
       <button class="btn pri sm" id="ef-sv-${n.id}">儲存</button>
@@ -1942,7 +1990,7 @@ function buildChildForm(pid){
       <div class="form-group" style="flex:0;min-width:100px"><div class="form-label">狀態</div><select class="sel" id="cf-status-${pid}">${statusOpts('進行中')}</select></div>
     </div>
     <div class="form-group"><div class="form-label">Google Drive 圖片連結（可選）</div><input class="inp" id="cf-img-${pid}" placeholder="貼上 Google Drive 分享連結或圖片網址"></div>
-    <div class="form-group"><div class="form-label">筆記（可選）</div><textarea class="inp" id="cf-n-${pid}" placeholder="詳細記錄..."></textarea></div>
+    <div class="form-group"><div class="form-label">筆記（可選）</div>${richNoteToolbar('cf-n-'+pid)}<textarea class="inp" id="cf-n-${pid}" placeholder="詳細記錄..."></textarea></div>
     <div><div class="form-label">節點顏色</div><div class="swatches" id="${swId}"></div></div>
     <div class="form-btns">
       <button class="btn pri sm" id="cf-add-${pid}">新增子節點</button>

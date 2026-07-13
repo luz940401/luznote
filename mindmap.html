@@ -54,6 +54,10 @@ svg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;ov
 .inp,.sel{width:100%;background:#f7f5f2;border:1px solid #e0dbd4;border-radius:7px;color:#1d1d1b;font-family:'Noto Sans TC',sans-serif;font-size:14px;padding:8px 10px;outline:none}
 .inp:focus,.sel:focus{border-color:#a09070;background:#fff}
 textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
+.rich-note-toolbar{display:flex;align-items:center;gap:5px;margin:0 0 5px}
+.rich-note-tool{width:31px;height:28px;border:1px solid #d8d0c4;border-radius:6px;background:#fff;color:#403a32;font:600 14px 'Noto Sans TC',sans-serif;cursor:pointer}
+.rich-note-tool:hover{border-color:#a09070;background:#faf7f1}
+.rich-note-hint{font-size:11px;color:#aaa;margin-left:3px}
 .hint{font-size:11px;color:#9a8f82;line-height:1.5}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 @media(max-width:700px){
@@ -122,7 +126,7 @@ textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
         </select></div>
       </div>
       <div class="form-group"><div class="form-label">Google Drive 圖片連結</div><input class="inp" id="detail-img-inp" placeholder="貼上 Google Drive 分享連結或圖片網址"><div class="hint">Drive 圖片請設定為「知道連結的任何人可查看」。</div></div>
-      <div class="form-group"><div class="form-label">描述內容</div><textarea class="inp" id="detail-note-inp"></textarea></div>
+      <div class="form-group"><div class="form-label">描述內容</div><div class="rich-note-toolbar"><button type="button" class="rich-note-tool" onclick="formatNoteSelection('detail-note-inp','bold')" title="粗體"><strong>B</strong></button><button type="button" class="rich-note-tool" onclick="formatNoteSelection('detail-note-inp','underline')" title="底線"><u>U</u></button><span class="rich-note-hint">先選取文字，再套用格式</span></div><textarea class="inp" id="detail-note-inp"></textarea></div>
     </div>
     <div class="modal-actions">
       <button class="btn" id="detail-save-btn" onclick="saveDetailEdit()">儲存</button>
@@ -173,6 +177,28 @@ let zoom=Number(localStorage.getItem(ZOOM_KEY)||'1');
 if(!Number.isFinite(zoom))zoom=1;
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function formatNoteSelection(textareaId,style){
+  const input=document.getElementById(textareaId);if(!input)return;
+  const pair=style==='underline'?['[u]','[/u]']:['[b]','[/b]'];
+  const start=input.selectionStart??input.value.length;
+  const end=input.selectionEnd??start;
+  const selected=input.value.slice(start,end);
+  const alreadyWrapped=input.value.slice(Math.max(0,start-pair[0].length),start).toLowerCase()===pair[0]&&input.value.slice(end,end+pair[1].length).toLowerCase()===pair[1];
+  if(alreadyWrapped){
+    input.setRangeText(selected,start-pair[0].length,end+pair[1].length,'select');
+  }else{
+    const placeholder=selected||(style==='underline'?'底線文字':'粗體文字');
+    input.setRangeText(pair[0]+placeholder+pair[1],start,end,'end');
+    input.setSelectionRange(start+pair[0].length,start+pair[0].length+placeholder.length);
+  }
+  input.focus();
+  input.dispatchEvent(new Event('input',{bubbles:true}));
+}
+function renderNoteFormatting(text){
+  return esc(String(text||''))
+    .replace(/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1</strong>')
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>');
+}
 function setSyncLabel(text){document.getElementById('sync-label').textContent=text;}
 function nowIso(){return new Date().toISOString();}
 function clamp(n,min,max){return Math.min(max,Math.max(min,n));}
@@ -521,7 +547,7 @@ function drawNode(id,pos){
   if(n.note){
     const note=document.createElement('div');
     note.className='node-note';
-    note.textContent=n.note;
+    note.innerHTML=renderNoteFormatting(n.note);
     text.appendChild(note);
   }
   row.appendChild(text);
@@ -644,7 +670,7 @@ function openDetail(id){
   const tag=document.getElementById('detail-tag');
   tag.textContent=n.tag;tag.style.background=ts.bg;tag.style.color=ts.color;
   document.getElementById('detail-title').textContent=n.title;
-  document.getElementById('detail-note').textContent=n.note||'尚未填寫備註。';
+  document.getElementById('detail-note').innerHTML=n.note?renderNoteFormatting(n.note):'尚未填寫備註。';
   document.getElementById('detail-title-inp').value=n.title||'';
   document.getElementById('detail-tag-inp').value=n.tag||'事件';
   document.getElementById('detail-status-inp').value=n.status||'進行中';

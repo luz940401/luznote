@@ -112,6 +112,11 @@ const TAG_STYLE={
 let nodes={},rootIds=[];
 
 function esc(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function renderNoteFormatting(text){
+  return esc(String(text||''))
+    .replace(/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1</strong>')
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>');
+}
 function normalizeGranDate(value){
   const raw=(value||'').toString().trim();
   if(!raw)return '';
@@ -242,7 +247,7 @@ function renderItem(row){
         <span class="year-pill">${esc(row.granDate||'未定年')}</span>
       </div>
       <div class="path">${esc(path)}</div>
-      ${note?`<div class="note">${esc(note)}</div>`:''}
+      ${note?`<div class="note">${renderNoteFormatting(note)}</div>`:''}
       <div class="actions">
         <a class="link" href="./index.html#node-${encodeURIComponent(row.id)}">原筆記</a>
         <a class="link" href="./mindmap.html">心智圖</a>
