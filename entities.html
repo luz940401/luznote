@@ -136,6 +136,7 @@ body.mobile-cloud-reader .card-actions{display:none!important}
 
 <script>
 let entries=[],editingId=null;
+let lastCloudError='';
 const MOBILE_CLOUD_READER=window.matchMedia('(pointer: coarse)').matches&&window.matchMedia('(max-width: 900px)').matches;
 const DATA_KEY='adventure-notes-entities-v1';
 const LEGACY_DATA_KEY='dnd-entities';
@@ -368,10 +369,12 @@ function saveAll(){
     app.updatedAt=nowIso();
     writeLocalApp(app);
     scheduleCloudSave(app);
+    return app;
   }catch{
     const app={entities:entries,updatedAt:nowIso()};
     writeLocalApp(app);
     scheduleCloudSave(app);
+    return app;
   }
 }
 function syncEntryToNode(entry,app){
@@ -445,16 +448,21 @@ function scheduleCloudSave(app){
 async function doCloudSave(app){
   if(!gsUrl)return false;
   clearTimeout(syncTimer);
+  lastCloudError='';
   try{
     const params=new URLSearchParams();
     params.append('value',JSON.stringify(app||readLocalApp()));
     const res=await fetch(gsUrl,{method:'POST',body:params});
     const json=await res.json();
     if(json.ok){clearDirty();setSyncStatus('ok','已同步');return true;}
-    setSyncStatus('err','儲存失敗');
+    lastCloudError=String(json.error||'Apps Script 未提供錯誤內容');
+    console.error('詞條雲端儲存失敗',lastCloudError);
+    setSyncStatus('err','儲存失敗：'+lastCloudError.slice(0,80));
     return false;
   }catch(e){
-    setSyncStatus('err','連線失敗');
+    lastCloudError=String(e&&e.message?e.message:e||'連線失敗');
+    console.error('詞條雲端連線失敗',e);
+    setSyncStatus('err','連線失敗：'+lastCloudError.slice(0,80));
     return false;
   }
 }
@@ -500,7 +508,7 @@ function resetForm(){
   document.getElementById('image-hint').textContent='建議使用 Google Drive 圖片分享連結，權限設為「知道連結的任何人可查看」。';
   updatePreview();
 }
-function saveEntry(){
+async function saveEntry(){
   const name=cleanEntityName(document.getElementById('name').value);
   document.getElementById('name').value=name;
   if(!name){alert('請輸入名稱');return;}
@@ -522,9 +530,15 @@ function saveEntry(){
   const idx=entries.findIndex(e=>e.id===data.id);
   if(idx>=0)entries[idx]=data;
   else entries.push(data);
-  saveAll();
+  const app=saveAll();
   resetForm();
   render();
+  if(gsUrl){
+    const synced=await doCloudSave(app);
+    if(!synced)alert('詞條已保存在這台裝置，但雲端儲存失敗：\n'+lastCloudError+'\n\n請先更新為支援分段儲存的 Apps Script。');
+  }else{
+    alert('詞條已保存在這台裝置，但目前沒有設定雲端連結。');
+  }
 }
 function editEntry(id){
   const e=entries.find(x=>x.id===id);if(!e)return;

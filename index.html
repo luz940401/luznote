@@ -797,11 +797,15 @@ async function doCloudSave() {
       }
       return true;
     } else {
-      setSyncStatus('err', '儲存失敗');
+      const message=String(json.error||'Apps Script 未提供錯誤內容');
+      console.error('雲端儲存失敗',message);
+      setSyncStatus('err', '儲存失敗：'+message.slice(0,80));
       return false;
     }
   } catch (e) {
-    setSyncStatus('err', '連線失敗');
+    const message=String(e&&e.message?e.message:e||'連線失敗');
+    console.error('雲端連線失敗',e);
+    setSyncStatus('err', '連線失敗：'+message.slice(0,80));
     return false;
   }
 }
