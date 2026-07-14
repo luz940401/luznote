@@ -55,6 +55,8 @@ textarea.inp{min-height:92px;resize:vertical;line-height:1.7}
 .card-img-link.image-error span{display:block}
 .card-body{padding:12px}
 .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#f0ece5;color:#6b5c4c;margin-bottom:7px}
+.entry-labels{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
+.entry-label{display:inline-block;font-size:11px;padding:2px 8px;border:1px solid #d8d0c4;border-radius:999px;background:#faf8f4;color:#776b5c}
 .name{font-size:16px;font-weight:700;line-height:1.35;margin-bottom:6px;word-break:break-word}
 .note{font-size:13px;color:#625a50;line-height:1.6;white-space:pre-wrap;word-break:break-word;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;min-height:20px}
 .card-actions{display:flex;gap:6px;margin-top:12px}
@@ -100,6 +102,11 @@ body.mobile-cloud-reader .card-actions{display:none!important}
         <input class="inp" id="custom-type" placeholder="例如：神祇、派系、怪物、家族">
       </div>
       <div class="field form-full">
+        <div class="label">別名／連結標籤</div>
+        <input class="inp" id="labels" placeholder="例如：瓦倫雷刃、雷刃大人（多個名稱請用逗號分隔）">
+        <div class="hint">筆記出現這些名稱時，也會連到此詞條；較長的名稱會優先辨識。</div>
+      </div>
+      <div class="field form-full">
         <div class="label">Google Drive 圖片 / 頭像</div>
         <div class="avatar-row">
           <img class="avatar-preview" id="preview" alt="">
@@ -126,7 +133,7 @@ body.mobile-cloud-reader .card-actions{display:none!important}
 
   <section>
     <div class="toolbar">
-      <input class="inp" id="search" placeholder="搜尋詞條..." oninput="render()">
+      <input class="inp" id="search" placeholder="搜尋名稱、別名或內容..." oninput="render()">
       <select class="sel" id="filter" style="max-width:130px" onchange="render()">
         <option value="">全部</option>
         <option value="角色">角色</option>
@@ -288,11 +295,16 @@ function makeBackup(reason){
     console.warn('備份失敗',e);
   }
 }
+function normalizeLabels(value){
+  const source=Array.isArray(value)?value:String(value||'').split(/[,，、]/);
+  return [...new Set(source.map(label=>String(label||'').trim()).filter(Boolean))];
+}
 function normalize(list){
   return (Array.isArray(list)?list:[]).map(e=>({
     id:e.id||uid(),
     name:cleanEntityName(e.name||e.title)||'未命名詞條',
     type:e.type||'角色',
+    labels:normalizeLabels(e.labels||e.tags),
     imageUrl:normalizeImageUrl(e.imageUrl||''),
     note:e.note||'',
     granDate:e.granDate||'',
@@ -311,6 +323,7 @@ function mergeEntryLists(...lists){
           ...e,
           note:e.note||existing.note,
           imageUrl:e.imageUrl||existing.imageUrl,
+          labels:e.labels.length?e.labels:existing.labels,
           granDate:e.granDate||existing.granDate,
           sourceNodeId:e.sourceNodeId||existing.sourceNodeId,
           created:existing.created||e.created
@@ -360,6 +373,7 @@ function syncNodesIntoEntries(app){
         id:uid(),
         name:n.title,
         type:nodeEntityType(n.tag),
+        labels:[],
         imageUrl:normalizeImageUrl(n.imageUrl||''),
         note:n.note||'',
         sourceNodeId:n.id,
@@ -523,6 +537,7 @@ function updatePreview(){
 }
 function clearImage(){
   document.getElementById('image-url').value='';
+  document.getElementById('labels').value='';
   updatePreview();
 }
 function resetForm(){
@@ -548,6 +563,7 @@ async function saveEntry(){
     id:editingId||duplicate?.id||uid(),
     name,
     type,
+    labels:normalizeLabels(document.getElementById('labels').value),
     imageUrl:normalizeImageUrl(currentImage()),
     note:document.getElementById('note').value,
     granDate:old?.granDate||duplicate?.granDate||'',
@@ -573,6 +589,7 @@ function editEntry(id){
   document.getElementById('form-title').textContent='編輯詞條';
   document.getElementById('name').value=e.name;
   setTypeValue(e.type);
+  document.getElementById('labels').value=(e.labels||[]).join('、');
   document.getElementById('image-url').value=e.imageUrl||'';
   document.getElementById('note').value=e.note||'';
   updatePreview();
@@ -599,7 +616,7 @@ function render(){
   const q=document.getElementById('search').value.trim().toLowerCase();
   const f=document.getElementById('filter').value;
   const cards=document.getElementById('cards');
-  const list=entries.filter(e=>(!f||e.type===f)&&(!q||e.name.toLowerCase().includes(q)||e.note.toLowerCase().includes(q)));
+  const list=entries.filter(e=>(!f||e.type===f)&&(!q||e.name.toLowerCase().includes(q)||e.note.toLowerCase().includes(q)||(e.labels||[]).some(label=>label.toLowerCase().includes(q))));
   if(!list.length){cards.innerHTML='<div class="empty">還沒有符合條件的詞條。</div>';return;}
   cards.innerHTML=list.map(e=>{
     const ts=TAG_STYLE[e.type]||{bg:'#f0f0f0',color:'#666'};
@@ -608,6 +625,7 @@ function render(){
       <div class="card-body">
         <span class="tag" style="background:${ts.bg};color:${ts.color}">${esc(e.type)}</span>
         <div class="name">${esc(e.name)}</div>
+        ${(e.labels||[]).length?`<div class="entry-labels">${e.labels.map(label=>`<span class="entry-label">又名 ${esc(label)}</span>`).join('')}</div>`:''}
         <div class="note">${e.note?renderNoteFormatting(e.note):'尚未填寫備註。'}</div>
         <div class="card-actions">
           <button class="btn" onclick="editEntry('${e.id}')">編輯</button>

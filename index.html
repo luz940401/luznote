@@ -928,11 +928,16 @@ function load(){
 
 function uid(){return 'n'+(nextId++);}
 function entityUid(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function normalizeEntityLabels(value){
+  const source=Array.isArray(value)?value:String(value||'').split(/[,，、]/);
+  return [...new Set(source.map(label=>String(label||'').trim()).filter(Boolean))];
+}
 function normalizeEntities(list){
   return (Array.isArray(list)?list:[]).map(e=>({
     id:e.id||entityUid(),
     name:cleanEntityName(e.name||e.title)||'未命名詞條',
     type:e.type||'角色',
+    labels:normalizeEntityLabels(e.labels||e.tags),
     note:e.note||'',
     granDate:normalizeGranDate(e.granDate||extractGranDateFromNote(e.note||'')),
     imageUrl:normalizeImageUrl(e.imageUrl||''),
@@ -950,6 +955,7 @@ function mergeEntityLists(...lists){
           ...e,
           note:e.note||existing.note,
           imageUrl:e.imageUrl||existing.imageUrl,
+          labels:e.labels.length?e.labels:existing.labels,
           granDate:e.granDate||existing.granDate,
           created:existing.created||e.created
         });
@@ -1117,6 +1123,16 @@ function expandAll(){
 function collapseAll(){
   rootIds.forEach(id=>{ nodes[id].treeOpen=false; });
   save();render();
+}
+
+// 每次進入筆記頁時，以完整展開的閱讀狀態開始。
+// 不呼叫 save()，避免單純開啟頁面就被視為內容變更並同步到雲端。
+function openAllNotesForInitialView(){
+  Object.values(nodes).forEach(n=>{
+    n.open=true;
+    n.expanded=true;
+    n.treeOpen=true;
+  });
 }
 
 function currentData(){
@@ -1606,11 +1622,19 @@ function mentionCandidates(skipId){
   const nodeEntries=Object.values(nodes)
     .filter(n=>n.id!==skipNodeId && n.title && cleanEntityName(n.title).length>=2)
     .map(n=>({key:'node:'+n.id,name:cleanEntityName(n.title),type:n.tag,note:n.note,imageUrl:n.imageUrl,created:n.created,nodeId:n.id}));
-  const glossaryEntries=entities
+  const glossaryEntries=[];
+  entities
     .filter(e=>e.id!==skipEntityId && e.name && cleanEntityName(e.name).length>=1)
-    .map(e=>({key:'entity:'+e.id,name:cleanEntityName(e.name),type:e.type,note:e.note,imageUrl:e.imageUrl,created:e.created,entityId:e.id}));
+    .forEach(e=>{
+      const base={key:'entity:'+e.id,type:e.type,note:e.note,imageUrl:e.imageUrl,created:e.created,entityId:e.id};
+      [e.name,...normalizeEntityLabels(e.labels)].forEach(name=>{
+        const cleanName=cleanEntityName(name);
+        if(cleanName)glossaryEntries.push({...base,name:cleanName});
+      });
+    });
   return [...glossaryEntries,...nodeEntries]
     .filter(item=>item.name)
+    .filter((item,index,list)=>list.findIndex(other=>other.name===item.name)===index)
     .sort((a,b)=>b.name.length-a.name.length);
 }
 function linkMentions(text,skipId,query){
@@ -2341,6 +2365,7 @@ async function init() {
   document.getElementById('qe-type').addEventListener('change',toggleQuickCustomType);
   enableMobileCloudReader();
   load(); // 先讀本地快取，立刻顯示
+  openAllNotesForInitialView();
   applyRootTemplate();
   initRootSw();
   render();
@@ -2351,7 +2376,7 @@ async function init() {
       // 手機以雲端為唯一來源，不採用或回傳手機上的舊快取。
       clearDirty();
       const loaded=await cloudLoad({promptConflict:false,authoritative:true});
-      if(loaded){localSave();render();}
+      if(loaded){openAllNotesForInitialView();localSave();render();}
     }else if(hasUnsyncedChanges()){
       // 上次可能在延遲同步完成前就關頁；先送出本機完整版本。
       const saved=await doCloudSave();
@@ -2359,6 +2384,7 @@ async function init() {
     }else{
       const loaded = await cloudLoad();
       if (loaded) {
+        openAllNotesForInitialView();
         localSave();
         render();
       }
