@@ -277,6 +277,7 @@ body.mobile-cloud-reader .node-row{gap:0}
     <button class="hbtn" onclick="window.open('./entities.html?v=20260713-cloud-authority-fix','_blank')">詞條庫</button>
     <button class="hbtn" onclick="window.open('./mindmap.html','_blank')">心智圖</button>
     <button class="hbtn" onclick="window.open('./timeline.html','_blank')">格蘭歷大綱</button>
+    <button class="hbtn" onclick="window.open('./slides.html','_blank')">幻燈片</button>
     <button class="hbtn" onclick="syncNow()">同步</button>
     <button class="hbtn" onclick="openBackupModal()">版本</button>
     <button class="hbtn" onclick="exportData()">匯出</button>
@@ -557,7 +558,7 @@ const DIRTY_KEY='adventure-notes-dirty';
 const GS_URL_KEY = 'adventure-notes-gs-url';
 const LEGACY_GS_URL_KEY = 'dnd-gs-url';
 
-let nodes={},rootIds=[],nextId=1,editingId=null,addingChildOf=null,entities=[];
+let nodes={},rootIds=[],nextId=1,editingId=null,addingChildOf=null,entities=[],slides=[];
 let selectedEntityText='';
 let selectedEntitySourceText='';
 let activeEntityKey='';
@@ -708,6 +709,7 @@ async function cloudLoad(options={}) {
       entities = options.authoritative
         ? normalizeEntities(d.entities)
         : mergeEntityLists(d.entities, loadStoredEntities());
+      slides = d.slides;
       const recoveredImages=imageFallbacks?restoreMissingImageUrls(imageFallbacks):0;
       dataUpdatedAt = cloudUpdatedAt || nowIso();
       saveEntities();
@@ -730,7 +732,7 @@ async function cloudLoad(options={}) {
     } else if (json.ok && !json.data) {
       if(options.authoritative){
         // 手機雲端唯讀：雲端確實為空時清掉手機舊快取，避免顯示不同內容。
-        nodes={};rootIds=[];nextId=1;entities=[];
+        nodes={};rootIds=[];nextId=1;entities=[];slides=[];
         dataUpdatedAt=json.updatedAt||nowIso();
         saveEntities();
         clearDirty();
@@ -916,7 +918,7 @@ function load(){
     const d=localStorage.getItem(APP_KEY)||localStorage.getItem(LEGACY_APP_KEY);
     if(d){
       const p=JSON.parse(d);
-      nodes=p.nodes||{};rootIds=p.rootIds||[];nextId=p.nextId||1;entities=mergeEntityLists(p.entities, loadStoredEntities());
+      nodes=p.nodes||{};rootIds=p.rootIds||[];nextId=p.nextId||1;entities=mergeEntityLists(p.entities, loadStoredEntities());slides=Array.isArray(p.slides)?p.slides:[];
       dataUpdatedAt=p.updatedAt||localStorage.getItem(APP_KEY+'-updatedAt')||nowIso();
       Object.values(nodes).forEach(n=>{
         normalizeNode(n);
@@ -1137,18 +1139,20 @@ function openAllNotesForInitialView(){
 
 function currentData(){
   entities=mergeEntityLists(loadStoredEntities(),entities);
-  return {appVersion:APP_VERSION,nodes,rootIds,nextId,entities,updatedAt:dataUpdatedAt||nowIso()};
+  return {appVersion:APP_VERSION,nodes,rootIds,nextId,entities,slides,updatedAt:dataUpdatedAt||nowIso()};
 }
 function validateData(d){
   if(!d || typeof d!=='object')throw new Error('資料不是有效的 JSON 物件');
   if(d.nodes && (typeof d.nodes!=='object' || Array.isArray(d.nodes)))throw new Error('nodes 格式不正確');
   if(d.rootIds && !Array.isArray(d.rootIds))throw new Error('rootIds 格式不正確');
   if(d.entities && !Array.isArray(d.entities))throw new Error('entities 格式不正確');
+  if(d.slides && !Array.isArray(d.slides))throw new Error('slides 格式不正確');
   const out={
     nodes:d.nodes||{},
     rootIds:d.rootIds||[],
     nextId:Number.isFinite(Number(d.nextId))?Number(d.nextId):1,
     entities:normalizeEntities(d.entities||[]),
+    slides:Array.isArray(d.slides)?d.slides:[],
     updatedAt:d.updatedAt||''
   };
   Object.values(out.nodes).forEach(n=>normalizeNode(n));
@@ -1184,7 +1188,7 @@ function importData(e){
     try{
       const d=validateData(JSON.parse(ev.target.result));
       makeBackup('匯入前自動備份');
-      nodes=d.nodes;rootIds=d.rootIds;nextId=d.nextId;entities=d.entities;
+      nodes=d.nodes;rootIds=d.rootIds;nextId=d.nextId;entities=d.entities;slides=d.slides;
       dataUpdatedAt=d.updatedAt||nowIso();
       saveEntities();
       ensureDataIntegrity();
@@ -1238,7 +1242,7 @@ function restoreBackup(key){
     const raw=JSON.parse(localStorage.getItem(key));
     const d=validateData(raw.data||raw);
     makeBackup('還原前自動備份');
-    nodes=d.nodes;rootIds=d.rootIds;nextId=d.nextId;entities=d.entities;
+    nodes=d.nodes;rootIds=d.rootIds;nextId=d.nextId;entities=d.entities;slides=d.slides;
     dataUpdatedAt=d.updatedAt||nowIso();
     ensureDataIntegrity();
     save();
