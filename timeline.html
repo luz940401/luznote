@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>格蘭歷時間線大綱</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans TC',sans-serif;background:#f0ede8;color:#1a1a1a;min-height:100vh}
@@ -14,7 +14,7 @@ header{background:#fff;border-bottom:2px solid #e0dbd2;padding:12px 20px;display
 .hbtn{padding:7px 13px;font-size:12px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;cursor:pointer;transition:all .15s;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;text-decoration:none}
 .hbtn:hover{border-color:#bbb;color:#222;background:#fafafa}
 .hbtn.accent{border-color:#c0b8a8;color:#5a5040;background:#faf8f4}
-.page{max-width:1120px;margin:0 auto;padding:22px 16px 80px;display:grid;grid-template-columns:190px minmax(0,1fr);gap:18px}
+.page{width:100%;max-width:1440px;margin:0 auto;padding:22px clamp(12px,2vw,28px) 80px;display:grid;grid-template-columns:210px minmax(0,1fr);gap:20px}
 .year-nav{position:sticky;top:76px;align-self:start;background:#fff;border:1px solid #e0dbd2;border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .nav-title{font-size:11px;font-weight:700;color:#aaa;letter-spacing:.1em;margin-bottom:10px}
 .year-link{display:flex;justify-content:space-between;gap:8px;width:100%;border:0;background:transparent;border-radius:7px;color:#554b3d;font:inherit;font-size:13px;text-align:left;text-decoration:none;padding:7px 8px;cursor:pointer}
@@ -42,13 +42,14 @@ header{background:#fff;border-bottom:2px solid #e0dbd2;padding:12px 20px;display
 .year-pill{font-size:11px;font-weight:700;color:#68460e;background:#fff7e6;border:1px solid #e4d1a8;border-radius:999px;padding:2px 8px;white-space:nowrap}
 .path{font-size:11px;color:#9c9288;line-height:1.55;margin-bottom:5px;word-break:break-word}
 .note{font-size:13px;color:#3a352f;line-height:1.75;white-space:pre-wrap;word-break:break-word;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.note strong{font-weight:700}
 .actions{display:flex;gap:7px;align-items:center;margin-top:8px;flex-wrap:wrap}
 .link{font-size:12px;color:#5a5040;text-decoration:none;border:1px solid #ddd3c6;background:#faf8f4;border-radius:6px;padding:5px 10px}
 .link:hover{background:#f3eee5;border-color:#c4b8a8}
 .empty{background:#fff;border:1px dashed #d8d0c5;border-radius:12px;padding:44px 20px;text-align:center;color:#aaa}
 .empty strong{display:block;font-family:'Noto Serif TC',serif;font-size:18px;font-weight:400;color:#999;margin-bottom:8px}
 .hidden{display:none}
-@media(max-width:760px){
+@media(max-width:900px){
   header{flex-wrap:wrap;padding:10px 12px}
   .logo{width:100%;flex:auto}
   .page{display:block;padding:16px 12px 70px}
@@ -61,6 +62,8 @@ header{background:#fff;border-bottom:2px solid #e0dbd2;padding:12px 20px;display
   .timeline-item::after{left:7px}
   .event-top{align-items:flex-start;flex-wrap:wrap}
   .title{width:100%;flex:auto}
+  .page{padding:14px 10px 60px}
+  .note{font-size:15px;line-height:1.8}
 }
 </style>
 </head>
@@ -116,7 +119,8 @@ function esc(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt
 function renderNoteFormatting(text){
   return esc(String(text||''))
     .replace(/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1</strong>')
-    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>');
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>')
+    .replace(/\[\/?(?:b|u)\]/gi,'');
 }
 function normalizeGranDate(value){
   const raw=(value||'').toString().trim();

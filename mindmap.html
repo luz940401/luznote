@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>冒險記錄｜心智圖</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans TC',sans-serif;background:#ebe7de;color:#1d1d1b;min-height:100vh;overflow:hidden}
@@ -47,6 +47,7 @@ svg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;ov
 .modal img{width:100%;max-height:240px;object-fit:contain;border-radius:10px;border:1px solid #e0dbd2;margin:8px 0 12px;background:#f5f3ef;cursor:zoom-in}
 .image-fallback{display:none;width:max-content;max-width:100%;border:1px solid #d8c8a8;background:#fffaf0;color:#68460e;border-radius:7px;padding:7px 10px;font-size:12px;text-decoration:none;margin:8px 0 12px}
 .modal-note{font-size:14px;color:#333;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+.modal-note strong{font-weight:700}
 .edit-form{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .form-row{display:flex;gap:8px;flex-wrap:wrap}
 .form-group{display:flex;flex-direction:column;flex:1;min-width:120px}
@@ -60,7 +61,7 @@ textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
 .rich-note-hint{font-size:11px;color:#aaa;margin-left:3px}
 .hint{font-size:11px;color:#9a8f82;line-height:1.5}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
-@media(max-width:700px){
+@media(max-width:900px){
   header{height:auto;min-height:54px;flex-wrap:wrap;padding:10px 12px}
   .logo{width:100%;flex:auto}
   .zoom-tools{order:3}
@@ -69,6 +70,7 @@ textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
   .modal-bg{padding:10px}
   .modal{max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px);padding:18px}
   .modal img{max-height:45vh;max-height:45dvh}
+  .modal-note{font-size:16px;line-height:1.85}
 }
 </style>
 </head>
@@ -178,11 +180,19 @@ let zoom=Number(localStorage.getItem(ZOOM_KEY)||'1');
 if(!Number.isFinite(zoom))zoom=1;
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+const noteSelectionCache=new WeakMap();
+document.addEventListener('pointerdown',event=>{
+  const toolbar=event.target.closest?.('.rich-note-toolbar');
+  const input=toolbar?.parentElement?.querySelector('textarea');
+  if(input)noteSelectionCache.set(input,{start:input.selectionStart,end:input.selectionEnd});
+});
 function formatNoteSelection(textareaId,style){
   const input=document.getElementById(textareaId);if(!input)return;
   const pair=style==='underline'?['[u]','[/u]']:['[b]','[/b]'];
-  const start=input.selectionStart??input.value.length;
-  const end=input.selectionEnd??start;
+  const cached=noteSelectionCache.get(input);
+  const useCached=document.activeElement!==input&&cached;
+  const start=useCached?cached.start:(input.selectionStart??input.value.length);
+  const end=useCached?cached.end:(input.selectionEnd??start);
   const selected=input.value.slice(start,end);
   const alreadyWrapped=input.value.slice(Math.max(0,start-pair[0].length),start).toLowerCase()===pair[0]&&input.value.slice(end,end+pair[1].length).toLowerCase()===pair[1];
   if(alreadyWrapped){
@@ -193,12 +203,14 @@ function formatNoteSelection(textareaId,style){
     input.setSelectionRange(start+pair[0].length,start+pair[0].length+placeholder.length);
   }
   input.focus();
+  noteSelectionCache.set(input,{start:input.selectionStart,end:input.selectionEnd});
   input.dispatchEvent(new Event('input',{bubbles:true}));
 }
 function renderNoteFormatting(text){
   return esc(String(text||''))
     .replace(/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1</strong>')
-    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>');
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>')
+    .replace(/\[\/?(?:b|u)\]/gi,'');
 }
 function setSyncLabel(text){document.getElementById('sync-label').textContent=text;}
 function nowIso(){return new Date().toISOString();}

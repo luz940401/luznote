@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>冒險記錄｜詞條庫</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans TC',sans-serif;background:#f0ede8;color:#1a1a1a;min-height:100vh}
@@ -23,7 +23,7 @@ header{background:#fff;border-bottom:2px solid #e0dbd2;padding:12px 20px;display
 .sync-status.saving .sync-dot{background:#e0a040}
 .sync-status.err{color:#a03030;border-color:#f0c0c0;background:#fff5f5}
 .sync-status.err .sync-dot{background:#d05050}
-main{max-width:980px;margin:0 auto;padding:24px 16px 80px}
+main{width:100%;max-width:1440px;margin:0 auto;padding:24px clamp(12px,2vw,28px) 80px}
 .panel{background:#fff;border:1px solid #e0dbd2;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.04);margin-bottom:18px}
 .panel-title{font-size:12px;color:#999;font-weight:600;letter-spacing:.08em;margin-bottom:12px}
 .form-grid{display:grid;grid-template-columns:1fr 130px;gap:10px}
@@ -59,15 +59,20 @@ textarea.inp{min-height:92px;resize:vertical;line-height:1.7}
 .entry-label{display:inline-block;font-size:11px;padding:2px 8px;border:1px solid #d8d0c4;border-radius:999px;background:#faf8f4;color:#776b5c}
 .name{font-size:16px;font-weight:700;line-height:1.35;margin-bottom:6px;word-break:break-word}
 .note{font-size:13px;color:#625a50;line-height:1.6;white-space:pre-wrap;word-break:break-word;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;min-height:20px}
+.note strong{font-weight:700}
 .card-actions{display:flex;gap:6px;margin-top:12px}
 .empty{text-align:center;padding:52px 20px;color:#bbb;border:1px dashed #d8d0c5;border-radius:12px;background:#faf8f4}
 body.mobile-cloud-reader main>.panel:first-child,
 body.mobile-cloud-reader .card-actions{display:none!important}
-@media(max-width:640px){
+@media(max-width:900px){
   header{flex-wrap:wrap;padding:10px 12px}
   .logo{width:100%;flex:auto}
   .form-grid{grid-template-columns:1fr}
   .avatar-row{flex-direction:column}
+  main{padding:16px 10px 60px}
+  .panel{padding:14px}
+  .cards{grid-template-columns:1fr}
+  .note{font-size:15px;line-height:1.75}
 }
 </style>
 </head>
@@ -173,11 +178,19 @@ const BASE_TYPES=['角色','城鎮','組織','物品'];
 function uid(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function attrEsc(s){return esc(s).replace(/'/g,'&#39;');}
+const noteSelectionCache=new WeakMap();
+document.addEventListener('pointerdown',event=>{
+  const toolbar=event.target.closest?.('.rich-note-toolbar');
+  const input=toolbar?.parentElement?.querySelector('textarea');
+  if(input)noteSelectionCache.set(input,{start:input.selectionStart,end:input.selectionEnd});
+});
 function formatNoteSelection(textareaId,style){
   const input=document.getElementById(textareaId);if(!input)return;
   const pair=style==='underline'?['[u]','[/u]']:['[b]','[/b]'];
-  const start=input.selectionStart??input.value.length;
-  const end=input.selectionEnd??start;
+  const cached=noteSelectionCache.get(input);
+  const useCached=document.activeElement!==input&&cached;
+  const start=useCached?cached.start:(input.selectionStart??input.value.length);
+  const end=useCached?cached.end:(input.selectionEnd??start);
   const selected=input.value.slice(start,end);
   const alreadyWrapped=input.value.slice(Math.max(0,start-pair[0].length),start).toLowerCase()===pair[0]&&input.value.slice(end,end+pair[1].length).toLowerCase()===pair[1];
   if(alreadyWrapped){
@@ -188,12 +201,14 @@ function formatNoteSelection(textareaId,style){
     input.setSelectionRange(start+pair[0].length,start+pair[0].length+placeholder.length);
   }
   input.focus();
+  noteSelectionCache.set(input,{start:input.selectionStart,end:input.selectionEnd});
   input.dispatchEvent(new Event('input',{bubbles:true}));
 }
 function renderNoteFormatting(text){
   return esc(String(text||''))
     .replace(/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1</strong>')
-    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>');
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>')
+    .replace(/\[\/?(?:b|u)\]/gi,'');
 }
 function cleanEntityName(value){
   return (value||'')

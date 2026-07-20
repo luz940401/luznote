@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>冒險記錄</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans TC',sans-serif;background:#f0ede8;color:#1a1a1a;min-height:100vh}
@@ -27,7 +27,7 @@ header{
 /* ── Mobile hamburger menu ── */
 .header-menu-btn{display:none;padding:6px 10px;font-size:16px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;cursor:pointer;line-height:1}
 .header-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-@media(max-width:600px){
+@media(max-width:900px){
   header{flex-wrap:wrap;padding:10px 12px;gap:6px}
   .logo{font-size:15px;flex:1}
   .logo em{display:none}
@@ -76,7 +76,7 @@ header{
 .sync-status.no-url:hover{border-color:#a09080;background:#f0ece4}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-main{max-width:700px;margin:0 auto;padding:24px 0 100px}
+main{width:100%;max-width:1440px;margin:0 auto;padding:24px 0 100px}
 
 /* ── Add box ── */
 .add-box{background:#fff;border:1px solid #e0dbd2;border-radius:12px;padding:18px;margin:0 16px 20px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
@@ -125,13 +125,13 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
 .tree-scroll::-webkit-scrollbar{height:4px}
 .tree-scroll::-webkit-scrollbar-track{background:transparent}
 .tree-scroll::-webkit-scrollbar-thumb{background:#d8d0c5;border-radius:2px}
-.tree{display:flex;flex-direction:column;gap:10px;min-width:320px;width:max-content;max-width:none}
+.tree{display:flex;flex-direction:column;gap:10px;min-width:320px;width:max-content;max-width:none;margin:0 auto}
 .node-wrap{position:relative}
 .node-row{display:flex;align-items:flex-start;gap:6px}
 .conn{width:24px;flex-shrink:0;position:relative;align-self:stretch;padding-top:22px}
 .conn::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:1px;background:#d8d0c5}
 .conn::after{content:'';position:absolute;left:10px;top:22px;width:14px;height:1px;background:#d8d0c5}
-.node-main{flex:1;min-width:260px;max-width:520px}
+.node-main{flex:1;min-width:420px;width:clamp(520px,calc(100vw - 220px),1050px);max-width:1050px}
 
 /* ── Card ── */
 .card{background:#fff;border:1px solid #e0dbd2;border-radius:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
@@ -163,6 +163,7 @@ main{max-width:700px;margin:0 auto;padding:24px 0 100px}
 .card-image-wrap.image-error .card-image-link{display:none}
 .card-image-wrap.image-error .image-fallback{display:inline-flex}
 .card-note{font-size:14px;color:#2a2a2a;line-height:1.9;white-space:pre-wrap;word-break:break-word;font-family:'Noto Sans TC',sans-serif;font-weight:400}
+.card-note strong,.entity-note strong{font-weight:700}
 .mention-link{border:0;border-bottom:1px dotted #6a7f50;background:#f3f8e8;color:#405c24;border-radius:4px;padding:0 4px;font:inherit;cursor:pointer}
 .mention-link:hover{background:#e7f0d5;color:#213610}
 #quick-entity-btn{position:fixed;z-index:180;display:none;padding:7px 11px;border:1px solid #b8c8a0;border-radius:999px;background:#f6faef;color:#405c24;font-size:12px;box-shadow:0 6px 18px rgba(0,0,0,.14);cursor:pointer}
@@ -259,6 +260,20 @@ body.mobile-cloud-reader #entity-save-btn,
 body.mobile-cloud-reader #entity-cancel-edit-btn,
 body.mobile-cloud-reader #entity-sync-btn{display:none!important}
 body.mobile-cloud-reader .node-row{gap:0}
+@media(max-width:900px){
+  main{width:100%;max-width:none;padding:16px 0 80px}
+  .add-box,.stats-bar,.filter-row,.recent-panel{margin-left:10px;margin-right:10px}
+  .tree-scroll{padding:0 8px 16px;overflow-x:hidden}
+  .tree{width:100%;min-width:0;margin:0}
+  .node-wrap,.node-row,.node-main{width:100%;min-width:0;max-width:none}
+  .children{padding-left:8px}
+  .conn{width:12px}
+  .conn::before{left:3px}
+  .conn::after{left:3px;width:9px}
+  .card-note,.entity-note{font-size:16px;line-height:1.85}
+  .card-body{padding:11px 12px 14px}
+  .mention-link{padding:1px 3px}
+}
 </style>
 </head>
 <body>
@@ -1495,11 +1510,19 @@ function richNoteToolbar(textareaId){
   const id=attrEsc(textareaId);
   return `<div class="rich-note-toolbar"><button type="button" class="rich-note-tool" onclick="formatNoteSelection('${id}','bold')" title="粗體"><strong>B</strong></button><button type="button" class="rich-note-tool" onclick="formatNoteSelection('${id}','underline')" title="底線"><u>U</u></button><span class="rich-note-hint">先選取文字，再套用格式</span></div>`;
 }
+const noteSelectionCache=new WeakMap();
+document.addEventListener('pointerdown',event=>{
+  const toolbar=event.target.closest?.('.rich-note-toolbar');
+  const input=toolbar?.parentElement?.querySelector('textarea');
+  if(input)noteSelectionCache.set(input,{start:input.selectionStart,end:input.selectionEnd});
+});
 function formatNoteSelection(textareaId,style){
   const input=document.getElementById(textareaId);if(!input)return;
   const pair=style==='underline'?['[u]','[/u]']:['[b]','[/b]'];
-  const start=input.selectionStart??input.value.length;
-  const end=input.selectionEnd??start;
+  const cached=noteSelectionCache.get(input);
+  const useCached=document.activeElement!==input&&cached;
+  const start=useCached?cached.start:(input.selectionStart??input.value.length);
+  const end=useCached?cached.end:(input.selectionEnd??start);
   const selected=input.value.slice(start,end);
   const alreadyWrapped=input.value.slice(Math.max(0,start-pair[0].length),start).toLowerCase()===pair[0]&&input.value.slice(end,end+pair[1].length).toLowerCase()===pair[1];
   if(alreadyWrapped){
@@ -1510,6 +1533,7 @@ function formatNoteSelection(textareaId,style){
     input.setSelectionRange(start+pair[0].length,start+pair[0].length+placeholder.length);
   }
   input.focus();
+  noteSelectionCache.set(input,{start:input.selectionStart,end:input.selectionEnd});
   input.dispatchEvent(new Event('input',{bubbles:true}));
 }
 function highlightNotePlainText(text,query){
@@ -1530,10 +1554,19 @@ function highlightNotePlainText(text,query){
 function applyNoteFormatting(html){
   return String(html||'')
     .replace(/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1</strong>')
-    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>');
+    .replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>')
+    .replace(/\[\/?(?:b|u)\]/gi,'');
 }
 function renderRichNote(text,skipId,query){
-  return applyNoteFormatting(linkMentions(String(text||''),skipId,query));
+  const tokens=[];
+  const protectedText=String(text||'').replace(/\[\/?(?:b|u)\]/gi,token=>{
+    const marker='\uE000'+String.fromCharCode(0xE100+tokens.length)+'\uE001';
+    tokens.push({marker,token});
+    return marker;
+  });
+  let html=linkMentions(protectedText,skipId,query);
+  tokens.forEach(item=>{html=html.split(item.marker).join(item.token);});
+  return applyNoteFormatting(html);
 }
 function cleanEntityName(value){
   return (value||'')
