@@ -44,7 +44,7 @@ svg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;ov
 .modal-bg.open{display:flex}
 .modal{width:100%;max-width:430px;max-height:calc(100vh - 40px);overflow-y:auto;background:#fff;border-radius:14px;border:1px solid #e4ddd4;box-shadow:0 10px 34px rgba(0,0,0,.18);padding:22px}
 .modal h3{font-family:'Noto Serif TC',serif;font-size:19px;font-weight:400;margin-bottom:8px}
-.modal img{width:100%;max-height:240px;object-fit:contain;border-radius:10px;border:1px solid #e0dbd2;margin:8px 0 12px;background:#f5f3ef;cursor:zoom-in}
+.modal img{display:block;width:auto;height:auto;max-width:100%;max-height:none;object-fit:contain;border-radius:10px;border:1px solid #e0dbd2;margin:8px auto 12px;background:transparent;cursor:zoom-in}
 .image-fallback{display:none;width:max-content;max-width:100%;border:1px solid #d8c8a8;background:#fffaf0;color:#68460e;border-radius:7px;padding:7px 10px;font-size:12px;text-decoration:none;margin:8px 0 12px}
 .modal-note{font-size:14px;color:#333;line-height:1.8;white-space:pre-wrap;word-break:break-word}
 .modal-note strong{font-weight:700}
@@ -60,6 +60,9 @@ textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
 .rich-note-tool:hover{border-color:#a09070;background:#faf7f1}
 .rich-note-hint{font-size:11px;color:#aaa;margin-left:3px}
 .hint{font-size:11px;color:#9a8f82;line-height:1.5}
+.image-width-control{display:flex;align-items:center;gap:10px;margin-top:7px}
+.image-width-control input[type=range]{flex:1;min-width:100px;accent-color:#7a6a50}
+.image-width-control output{width:44px;text-align:right;color:#6f6252;font-size:12px;font-weight:700}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 @media(max-width:900px){
   header{height:auto;min-height:54px;flex-wrap:wrap;padding:10px 12px}
@@ -69,7 +72,7 @@ textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
   #map-wrap{height:calc(100vh - 92px)}
   .modal-bg{padding:10px}
   .modal{max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px);padding:18px}
-  .modal img{max-height:45vh;max-height:45dvh}
+  .modal img{max-height:none}
   .modal-note{font-size:16px;line-height:1.85}
 }
 </style>
@@ -129,6 +132,7 @@ textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
         </select></div>
       </div>
       <div class="form-group"><div class="form-label">Google Drive 圖片連結</div><input class="inp" id="detail-img-inp" placeholder="貼上 Google Drive 分享連結或圖片網址"><div class="hint">Drive 圖片請設定為「知道連結的任何人可查看」。</div></div>
+      <div class="form-group"><div class="form-label">圖片寬度</div><div class="image-width-control"><input id="detail-img-width-inp" type="range" min="20" max="100" step="1" value="100" oninput="document.getElementById('detail-img-width-out').value=this.value+'%'"><output id="detail-img-width-out">100%</output></div></div>
       <div class="form-group"><div class="form-label">描述內容</div><div class="rich-note-toolbar"><button type="button" class="rich-note-tool" onclick="formatNoteSelection('detail-note-inp','bold')" title="粗體"><strong>B</strong></button><button type="button" class="rich-note-tool" onclick="formatNoteSelection('detail-note-inp','underline')" title="底線"><u>U</u></button><span class="rich-note-hint">先選取文字，再套用格式</span></div><textarea class="inp" id="detail-note-inp"></textarea></div>
     </div>
     <div class="modal-actions">
@@ -323,12 +327,17 @@ function openImage(url){
   const target=openableImageUrl(url);
   if(target)window.open(target,'_blank','noopener');
 }
+function normalizeImageWidth(value){
+  const width=Math.round(Number(value)||100);
+  return Math.min(100,Math.max(20,width));
+}
 function normalizeNode(n){
   if(!Array.isArray(n.children))n.children=[];
   if(!n.title)n.title='未命名節點';
   if(!n.tag)n.tag='事件';
   if(!n.status)n.status='進行中';
   if(n.imageUrl)n.imageUrl=normalizeImageUrl(n.imageUrl);
+  n.imageWidth=normalizeImageWidth(n.imageWidth);
   if(Number.isFinite(Number(n.mapX)))n.mapX=Number(n.mapX);
   if(Number.isFinite(Number(n.mapY)))n.mapY=Number(n.mapY);
 }
@@ -652,6 +661,7 @@ function syncNodeToEntity(n){
     name:n.title,
     type:nodeEntityType(n.tag),
     imageUrl:normalizeImageUrl(n.imageUrl||''),
+    imageWidth:normalizeImageWidth(n.imageWidth),
     note:n.note||'',
     sourceNodeId:n.id,
     created:existing?.created||n.created||new Date().toLocaleDateString('zh-TW')
@@ -688,10 +698,14 @@ function openDetail(id){
   document.getElementById('detail-tag-inp').value=n.tag||'事件';
   document.getElementById('detail-status-inp').value=n.status||'進行中';
   document.getElementById('detail-img-inp').value=n.imageUrl||'';
+  const imageWidth=normalizeImageWidth(n.imageWidth);
+  document.getElementById('detail-img-width-inp').value=imageWidth;
+  document.getElementById('detail-img-width-out').value=imageWidth+'%';
   document.getElementById('detail-note-inp').value=n.note||'';
   const img=document.getElementById('detail-img');
   const fallback=document.getElementById('detail-img-fallback');
   const imageUrl=normalizeImageUrl(n.imageUrl);
+  img.style.width=imageWidth+'%';
   if(fallback){fallback.style.display='none';fallback.href=openableImageUrl(n.imageUrl||imageUrl);}
   if(imageUrl){
     img.alt=n.title;
@@ -719,6 +733,7 @@ function saveDetailEdit(){
   n.tag=document.getElementById('detail-tag-inp').value;
   n.status=document.getElementById('detail-status-inp').value;
   n.imageUrl=normalizeImageUrl(document.getElementById('detail-img-inp').value);
+  n.imageWidth=normalizeImageWidth(document.getElementById('detail-img-width-inp').value);
   n.note=document.getElementById('detail-note-inp').value;
   n.updatedAt=nowIso();
   if(shouldSyncNodeToEntity(n))syncNodeToEntity(n);
