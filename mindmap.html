@@ -76,6 +76,8 @@ textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
   .modal-note{font-size:16px;line-height:1.85}
 }
 </style>
+<script src="./adventure-shared.js"></script>
+<link rel="stylesheet" href="./chapter-nav.css">
 </head>
 <body>
 <header>
@@ -84,6 +86,7 @@ textarea.inp{min-height:110px;resize:vertical;line-height:1.7}
   <button class="btn" onclick="fitMap()">置中</button>
   <a class="btn" href="./index.html">返回筆記</a>
   <a class="btn" href="./slides.html">精彩回顧</a>
+  <a class="btn" href="./clues.html">線索收藏</a>
   <span class="mode-label" id="mode-label">觀看模式</span>
   <div class="zoom-tools">
     <button class="btn" onclick="zoomBy(-0.1)" title="縮小">−</button>
@@ -353,6 +356,7 @@ function currentData(){
   appData.rootIds=rootIds;
   if(!Array.isArray(appData.entities))appData.entities=[];
   appData.updatedAt=nowIso();
+  appData=AdventureClues.preserve(appData);
   return appData;
 }
 function saveLocal(){
@@ -371,7 +375,7 @@ function scheduleCloudSave(){
 async function doCloudSave(){
   try{
     const params=new URLSearchParams();
-    params.append('value',JSON.stringify(currentData()));
+    params.append('value',JSON.stringify(await AdventureClues.prepareSave(currentData(),gsUrl)));
     if(isAdmin&&adminToken)params.append('adminToken',adminToken);
     const res=await fetch(gsUrl,{method:'POST',body:params});
     const json=await res.json();
@@ -537,7 +541,7 @@ function drawNode(id,pos){
   const pal=PALETTE[n.ci]||PALETTE[0];
   const ts=TAG_STYLE[n.tag]||{bg:'#f0f0f0',color:'#666'};
   const el=document.createElement('button');
-  el.className='node';
+  el.className='node';el.dataset.nodeId=id;
   el.style.left=pos.x+'px';
   el.style.top=pos.y+'px';
   el.style.borderColor=pal.border;
@@ -753,5 +757,6 @@ async function init(){
 }
 init();
 </script>
+<script src="./chapter-nav.js"></script>
 </body>
 </html>

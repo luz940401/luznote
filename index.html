@@ -159,9 +159,10 @@ main{width:100%;max-width:1440px;margin:0 auto;padding:24px 0 100px}
 .tree-toggle.collapsed{color:#7a6a50;border-color:#c8bca8;background:#faf5ec}
 .card-body{border-top:1px solid #ede8e0;padding:10px 14px 13px;display:none}
 .card-body.open{display:block}
-.card-image-wrap{margin-bottom:10px}
+.card-image-wrap{margin-bottom:10px;--note-image-width:560px;--note-image-height:360px}
 .card-image-link{display:block;width:fit-content;max-width:100%;margin:0 auto;border:1px solid #e0dbd2;border-radius:10px;overflow:hidden;background:transparent;text-decoration:none}
-.card-image{display:block;width:100%;height:auto;max-width:100%;max-height:none;object-fit:contain;background:transparent}
+.card-image{display:block;width:100%;height:auto;max-width:100%;max-height:var(--note-image-height);object-fit:contain;background:transparent}
+@media(max-width:900px){.card-image-wrap{--note-image-width:480px;--note-image-height:280px}}
 .image-fallback{display:none;align-items:center;width:max-content;max-width:100%;border:1px solid #d8c8a8;background:#fffaf0;color:#68460e;border-radius:7px;padding:7px 10px;font-size:12px;text-decoration:none}
 .card-image-wrap.image-error .card-image-link{display:none}
 .card-image-wrap.image-error .image-fallback{display:inline-flex}
@@ -278,6 +279,8 @@ body.mobile-cloud-reader .node-row{gap:0}
   .mention-link{padding:1px 3px}
 }
 </style>
+<script src="./adventure-shared.js"></script>
+<link rel="stylesheet" href="./chapter-nav.css">
 </head>
 <body>
 
@@ -294,6 +297,7 @@ body.mobile-cloud-reader .node-row{gap:0}
     <div class="header-divider"></div>
     <button class="hbtn" onclick="window.open('./entities.html?v=20260713-cloud-authority-fix','_blank')">詞條庫</button>
     <button class="hbtn" onclick="window.open('./mindmap.html','_blank')">心智圖</button>
+    <a class="hbtn" style="text-decoration:none" href="./clues.html">線索收藏</a>
     <button class="hbtn" onclick="window.open('./timeline.html','_blank')">格蘭歷大綱</button>
     <button class="hbtn" onclick="window.open('./slides.html','_blank')">精彩回顧</button>
     <button class="hbtn" onclick="syncNow()">同步</button>
@@ -567,7 +571,7 @@ const NODE_TEMPLATES={
   clue:{label:'線索',tag:'線索',status:'伏筆',note:'線索內容：\n指向：\n誰知道：\n何時揭露：'},
   secret:{label:'秘密',tag:'秘密',status:'未揭露',note:'真相：\n相關人物：\n揭露條件：\n揭露後影響：'}
 };
-const APP_VERSION=4;
+const APP_VERSION=5;
 const APP_KEY='adventure-notes-v1';
 const LEGACY_APP_KEY='dnd-v3';
 const ENTITIES_KEY='adventure-notes-entities-v1';
@@ -578,7 +582,7 @@ const DIRTY_KEY='adventure-notes-dirty';
 const GS_URL_KEY = 'adventure-notes-gs-url';
 const LEGACY_GS_URL_KEY = 'dnd-gs-url';
 
-let nodes={},rootIds=[],nextId=1,editingId=null,addingChildOf=null,entities=[],slides=[];
+let nodes={},rootIds=[],nextId=1,editingId=null,addingChildOf=null,entities=[],slides=[],clues=[];
 let selectedEntityText='';
 let selectedEntitySourceText='';
 let activeEntityKey='';
@@ -729,7 +733,7 @@ async function cloudLoad(options={}) {
       entities = options.authoritative
         ? normalizeEntities(d.entities)
         : mergeEntityLists(d.entities, loadStoredEntities());
-      slides = d.slides;
+      slides = d.slides; clues = d.clues;
       const recoveredImages=imageFallbacks?restoreMissingImageUrls(imageFallbacks):0;
       dataUpdatedAt = cloudUpdatedAt || nowIso();
       saveEntities();
@@ -752,7 +756,7 @@ async function cloudLoad(options={}) {
     } else if (json.ok && !json.data) {
       if(options.authoritative){
         // 手機雲端唯讀：雲端確實為空時清掉手機舊快取，避免顯示不同內容。
-        nodes={};rootIds=[];nextId=1;entities=[];slides=[];
+        nodes={};rootIds=[];nextId=1;entities=[];slides=[];clues=[];
         dataUpdatedAt=json.updatedAt||nowIso();
         saveEntities();
         clearDirty();
@@ -799,7 +803,7 @@ async function doCloudSave() {
   clearTimeout(syncTimer);
   try {
     const sentUpdatedAt=dataUpdatedAt;
-    const value = JSON.stringify(currentData());
+    const value = JSON.stringify(await AdventureClues.prepareSave(currentData(),gsUrl));
     const params = new URLSearchParams();
     params.append('value', value);
     const res = await fetch(gsUrl, {
@@ -938,7 +942,7 @@ function load(){
     const d=localStorage.getItem(APP_KEY)||localStorage.getItem(LEGACY_APP_KEY);
     if(d){
       const p=JSON.parse(d);
-      nodes=p.nodes||{};rootIds=p.rootIds||[];nextId=p.nextId||1;entities=mergeEntityLists(p.entities, loadStoredEntities());slides=Array.isArray(p.slides)?p.slides:[];
+      nodes=p.nodes||{};rootIds=p.rootIds||[];nextId=p.nextId||1;entities=mergeEntityLists(p.entities, loadStoredEntities());slides=Array.isArray(p.slides)?p.slides:[];clues=Array.isArray(p.clues)?p.clues:[];
       dataUpdatedAt=p.updatedAt||localStorage.getItem(APP_KEY+'-updatedAt')||nowIso();
       Object.values(nodes).forEach(n=>{
         normalizeNode(n);
@@ -1166,7 +1170,7 @@ function openAllNotesForInitialView(){
 
 function currentData(){
   entities=mergeEntityLists(loadStoredEntities(),entities);
-  return {appVersion:APP_VERSION,nodes,rootIds,nextId,entities,slides,updatedAt:dataUpdatedAt||nowIso()};
+  return AdventureClues.preserve({appVersion:APP_VERSION,nodes,rootIds,nextId,entities,slides,clues,updatedAt:dataUpdatedAt||nowIso()});
 }
 function validateData(d){
   if(!d || typeof d!=='object')throw new Error('資料不是有效的 JSON 物件');
@@ -1180,6 +1184,7 @@ function validateData(d){
     nextId:Number.isFinite(Number(d.nextId))?Number(d.nextId):1,
     entities:normalizeEntities(d.entities||[]),
     slides:Array.isArray(d.slides)?d.slides:[],
+    clues:Array.isArray(d.clues)?d.clues:[],
     updatedAt:d.updatedAt||''
   };
   Object.values(out.nodes).forEach(n=>normalizeNode(n));
@@ -1215,7 +1220,7 @@ function importData(e){
     try{
       const d=validateData(JSON.parse(ev.target.result));
       makeBackup('匯入前自動備份');
-      nodes=d.nodes;rootIds=d.rootIds;nextId=d.nextId;entities=d.entities;slides=d.slides;
+      nodes=d.nodes;rootIds=d.rootIds;nextId=d.nextId;entities=d.entities;slides=d.slides;clues=d.clues;
       dataUpdatedAt=d.updatedAt||nowIso();
       saveEntities();
       ensureDataIntegrity();
@@ -1269,7 +1274,7 @@ function restoreBackup(key){
     const raw=JSON.parse(localStorage.getItem(key));
     const d=validateData(raw.data||raw);
     makeBackup('還原前自動備份');
-    nodes=d.nodes;rootIds=d.rootIds;nextId=d.nextId;entities=d.entities;slides=d.slides;
+    nodes=d.nodes;rootIds=d.rootIds;nextId=d.nextId;entities=d.entities;slides=d.slides;clues=d.clues;
     dataUpdatedAt=d.updatedAt||nowIso();
     ensureDataIntegrity();
     save();
@@ -1359,7 +1364,9 @@ function renderRecent(){
   });
 }
 
+let cancelNodeFocus=()=>{};
 function focusNode(id){
+  cancelNodeFocus();
   const n=nodes[id];if(!n)return;
   let cur=n;
   while(cur?.parentId&&nodes[cur.parentId]){
@@ -1369,13 +1376,35 @@ function focusNode(id){
   }
   n.open=true;
   render();
-  setTimeout(()=>{
-    const el=document.querySelector(`[data-id="${id}"]`);
-    if(!el)return;
-    el.scrollIntoView({behavior:'smooth',block:'center'});
-    el.classList.add('focus-flash');
-    setTimeout(()=>el.classList.remove('focus-flash'),1500);
-  },50);
+  // Align the selected card heading, not the centre of its entire subtree.
+  // Lazy images above it can still change the layout after the first frame.
+  let frame=0,stopped=false,timer;
+  const tree=document.getElementById('tree'),header=document.querySelector('header');
+  const align=()=>{
+    if(stopped)return;
+    const wrap=document.querySelector(`.node-wrap[data-id="${id}"]`);
+    const heading=wrap?.querySelector(':scope > .node-row > .node-main > .card > .card-head');
+    if(!heading)return;
+    const top=window.scrollY+heading.getBoundingClientRect().top-header.getBoundingClientRect().height-16;
+    const limit=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+    window.scrollTo({top:Math.max(0,Math.min(top,limit)),behavior:'instant'});
+  };
+  const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(align);};
+  const observer=new ResizeObserver(schedule);
+  observer.observe(tree);observer.observe(header);
+  const stop=()=>{
+    if(stopped)return;stopped=true;cancelAnimationFrame(frame);clearTimeout(timer);observer.disconnect();
+    tree.removeEventListener('load',schedule,true);
+    for(const event of ['wheel','touchstart','pointerdown','keydown'])window.removeEventListener(event,stop,true);
+  };
+  cancelNodeFocus=stop;
+  tree.addEventListener('load',schedule,true);
+  for(const event of ['wheel','touchstart','pointerdown','keydown'])window.addEventListener(event,stop,{capture:true,passive:true});
+  timer=setTimeout(stop,10000);
+  schedule();
+  const target=document.querySelector(`.node-wrap[data-id="${id}"]`);
+  target?.classList.add('focus-flash');
+  setTimeout(()=>target?.classList.remove('focus-flash'),1500);
 }
 function hashNodeId(){
   const raw=decodeURIComponent((location.hash||'').replace(/^#/,''));
@@ -1643,7 +1672,8 @@ function buildImageBlock(imageUrl,title,imageWidth){
   wrap.className='card-image-wrap';
   const link=document.createElement('a');
   link.className='card-image-link';
-  link.style.width=normalizeImageWidth(imageWidth)+'%';
+  const requestedWidth=normalizeImageWidth(imageWidth);
+  link.style.width=`min(${requestedWidth}%, var(--note-image-width))`;
   link.href=openableImageUrl(imageUrl||normalized);
   link.target='_blank';
   link.rel='noopener';
@@ -1652,6 +1682,11 @@ function buildImageBlock(imageUrl,title,imageWidth){
   img.className='card-image';
   img.alt=title||'';
   img.loading='lazy';
+  img.onload=()=>{
+    if(!img.naturalWidth||!img.naturalHeight)return;
+    // Limit the actual frame as well as the image; never enlarge a small source.
+    link.style.width=`min(${requestedWidth}%, var(--note-image-width), ${img.naturalWidth}px, calc(var(--note-image-height) * ${img.naturalWidth/img.naturalHeight}))`;
+  };
   setImageWithFallback(img,imageUrl||normalized,()=>wrap.classList.add('image-error'));
   link.appendChild(img);
   const fallback=document.createElement('a');
@@ -2465,5 +2500,6 @@ async function init() {
 
 init();
 </script>
+<script src="./chapter-nav.js"></script>
 </body>
 </html>

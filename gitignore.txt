@@ -1,0 +1,20 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local exports / backups
+dnd-notes-*.json
+adventure-notes-*.json
+*.bak
+*.tmp
+
+# Secrets
+.env
+*.secret.*

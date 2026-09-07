@@ -78,6 +78,7 @@ body.mobile-cloud-reader .card-actions{display:none!important}
   .note{font-size:15px;line-height:1.75}
 }
 </style>
+<script src="./adventure-shared.js"></script>
 </head>
 <body>
 <header>
@@ -86,6 +87,7 @@ body.mobile-cloud-reader .card-actions{display:none!important}
   <a class="btn" href="./index.html">返回筆記</a>
   <a class="btn" href="./mindmap.html">心智圖</a>
   <a class="btn" href="./slides.html">精彩回顧</a>
+  <a class="btn" href="./clues.html">線索收藏</a>
 </header>
 
 <main>
@@ -302,6 +304,7 @@ function readLocalApp(){
   catch{return {};}
 }
 function writeLocalApp(app){
+  app=AdventureClues.preserve(app);
   localStorage.setItem(APP_KEY,JSON.stringify(app));
   localStorage.setItem(LEGACY_APP_KEY,JSON.stringify(app));
 }
@@ -526,7 +529,7 @@ async function doCloudSave(app){
   lastCloudError='';
   try{
     const params=new URLSearchParams();
-    params.append('value',JSON.stringify(app||readLocalApp()));
+    params.append('value',JSON.stringify(await AdventureClues.prepareSave(app||readLocalApp(),gsUrl)));
     const res=await fetch(gsUrl,{method:'POST',body:params});
     const json=await res.json();
     if(json.ok){clearDirty();setSyncStatus('ok','已同步');return true;}

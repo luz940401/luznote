@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>冒險記錄｜線索收藏</title>
+<link rel="stylesheet" href="./clues.css">
+<script src="./adventure-shared.js"></script>
+</head>
+<body>
+<header>
+  <a class="brand" href="./index.html">冒險記錄 <span>線索收藏</span></a>
+  <nav aria-label="主要導覽"><a class="btn" href="./index.html">主筆記</a><a class="btn" href="./mindmap.html">心智圖</a><a class="btn" href="./slides.html">精彩回顧</a></nav>
+  <button class="btn" id="sync-button">同步</button><button class="btn" id="mode-button" aria-pressed="false">整理收藏</button>
+</header>
+<main>
+  <section class="intro"><div><p class="eyebrow">沿途拾起的故事</p><h1>線索收藏</h1><p class="subtitle">那些找到的信件、帶走的道具，和還記得的細節。</p></div><button class="btn primary editor-only" id="add-button" hidden>＋ 加入線索</button></section>
+  <div class="status-row"><span id="sync-status" role="status">正在讀取收藏…</span><button class="text-button" id="connection-button">雲端設定</button><span class="mode-note" id="mode-note">觀看模式 · 點選圖片或標題查看完整內容</span></div>
+  <section class="filters" aria-label="篩選線索">
+    <input type="search" id="search" aria-label="搜尋線索" placeholder="搜尋標題、說明或取得地點…">
+    <select id="kind-filter" aria-label="素材類型"><option value="">全部類型</option><option>信件</option><option>道具</option><option>圖片</option><option>地圖</option><option>其他</option></select>
+    <select id="chapter-filter" aria-label="取得章節"><option value="">全部章節</option></select>
+    <select id="sort" aria-label="排序方式"><option value="newest">最近加入</option><option value="oldest">最早加入</option><option value="title">標題排序</option></select>
+  </section>
+  <div class="collection-meta"><span id="count"></span><button class="text-button" id="reset-button">清除篩選</button></div>
+  <div class="gallery" id="gallery"></div>
+  <div class="empty" id="empty" hidden></div>
+</main>
+<dialog id="editor" aria-labelledby="editor-title">
+  <form id="clue-form">
+    <div class="dialog-head"><h2 id="editor-title">加入線索</h2><button type="button" class="close" data-close="editor" aria-label="關閉">×</button></div>
+    <p class="form-hint">這裡的內容都會提供給玩家回顧。</p>
+    <label>標題 <input id="title-input" required maxlength="180" placeholder="例如：旅店房間裡的密函"></label>
+    <div class="form-grid"><label>類型<select id="kind-input"><option>信件</option><option>道具</option><option>圖片</option><option>地圖</option><option>其他</option></select></label><label>取得章節<select id="chapter-input"><option value="">未指定章節</option></select></label></div>
+    <label>Google Drive 圖片分享連結<input id="image-input" type="url" placeholder="https://drive.google.com/file/d/…/view"></label>
+    <p class="form-hint">請將圖片設為「知道連結的任何人可查看」。可先只記文字，稍後補圖。</p>
+    <div class="preview" id="preview" hidden><img id="preview-image" alt="線索圖片預覽"><p id="preview-error" hidden>暫時無法預覽，請確認這是圖片，且分享權限已開啟。</p></div>
+    <label>取得地點／場合<input id="location-input" maxlength="200" placeholder="例如：舊宅二樓書房，搜查書桌時發現"></label>
+    <label>說明／信件文字<textarea id="note-input" rows="6" placeholder="記下圖片內容、取得經過，或貼上信件逐字稿，方便手機閱讀與搜尋。"></textarea></label>
+    <p class="form-error" id="form-error" role="alert"></p>
+    <div class="dialog-actions"><button type="button" class="btn" data-close="editor">取消</button><button type="submit" class="btn primary" id="save-button">儲存線索</button></div>
+  </form>
+</dialog>
+<dialog id="viewer" class="viewer" aria-labelledby="view-title">
+  <div class="dialog-head"><span id="view-kind" class="badge"></span><button class="close" data-close="viewer" aria-label="關閉">×</button></div>
+  <div class="viewer-layout"><div class="viewer-media" id="viewer-media"><button class="image-open" id="zoom-image" aria-label="放大圖片"><img id="view-image" alt=""></button><p id="view-image-error" hidden>圖片暫時無法載入，可以使用下方連結在 Google Drive 查看。</p><a id="view-drive" class="btn" target="_blank" rel="noopener noreferrer">在 Google Drive 開啟 ↗</a></div>
+  <div class="viewer-text"><h2 id="view-title"></h2><p class="view-meta" id="view-location"></p><a id="view-chapter" class="chapter-reference"></a><p id="view-note"></p></div></div>
+  <div class="viewer-footer"><button class="btn" id="previous">← 上一則</button><span id="view-position"></span><button class="btn" id="next">下一則 →</button></div>
+</dialog>
+<dialog id="lightbox" class="lightbox" aria-label="完整圖片"><button class="close" data-close="lightbox" aria-label="關閉完整圖片">×</button><p>可捲動查看完整圖片；手機可用瀏覽器手勢放大。</p><img id="full-image" alt=""></dialog>
+<dialog id="connection" aria-labelledby="connection-title"><form id="connection-form"><div class="dialog-head"><h2 id="connection-title">連結雲端</h2><button type="button" class="close" data-close="connection" aria-label="關閉">×</button></div><p class="form-hint">貼上與主筆記相同的 Google Apps Script Web App 網址。</p><label>Web App 網址<input id="url-input" type="url" required placeholder="https://script.google.com/macros/s/…/exec"></label><p id="connection-error" class="form-error" role="alert"></p><div class="dialog-actions"><button class="btn primary" type="submit">儲存並連線</button></div></form></dialog>
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="./clues.js"></script>
+</body>
+</html>
