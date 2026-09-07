@@ -166,7 +166,7 @@ main{width:100%;max-width:1440px;margin:0 auto;padding:24px 0 100px}
 .image-fallback{display:none;align-items:center;width:max-content;max-width:100%;border:1px solid #d8c8a8;background:#fffaf0;color:#68460e;border-radius:7px;padding:7px 10px;font-size:12px;text-decoration:none}
 .card-image-wrap.image-error .card-image-link{display:none}
 .card-image-wrap.image-error .image-fallback{display:inline-flex}
-.note-gallery-controls{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px}.note-gallery-controls button{border:1px solid #d8d0c4;border-radius:6px;background:#fff;padding:4px 9px;color:#625545;cursor:pointer}.note-gallery-page{font-size:11px;color:#8b7d6b}.note-gallery-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.note-gallery-grid .card-image-link{width:100%!important}.note-gallery-grid .card-image{max-height:220px}.note-gallery-urls{font-size:11px;color:#867661;margin-top:5px}
+.note-gallery-controls{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px}.note-gallery-controls button{border:1px solid #d8d0c4;border-radius:6px;background:#fff;padding:4px 9px;color:#625545;cursor:pointer}.note-gallery-page{font-size:11px;color:#8b7d6b}.note-gallery-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.note-gallery-grid .card-image-link{width:100%!important}.note-gallery-grid .card-image{max-height:220px}.note-gallery-urls{font-size:11px;color:#867661;margin-top:5px}.card-image-link.image-link-error{min-height:70px;display:flex;align-items:center;justify-content:center;color:#8b6d4e;font-size:12px;background:#f7f2e9;text-decoration:none}.card-image-link.image-link-error .card-image{display:none}.image-page-fallback{padding:10px}
 .card-note{font-size:14px;color:#2a2a2a;line-height:1.9;white-space:pre-wrap;word-break:break-word;font-family:'Noto Sans TC',sans-serif;font-weight:400}
 .card-note strong,.entity-note strong{font-weight:700}
 .mention-link{border:0;border-bottom:1px dotted #6a7f50;background:#f3f8e8;color:#405c24;border-radius:4px;padding:0 4px;font:inherit;cursor:pointer}
@@ -638,8 +638,8 @@ function imageUrlCandidates(url){
   const urls=[];
   if(id){
     const enc=encodeURIComponent(id);
-    urls.push(`https://lh3.googleusercontent.com/d/${enc}=w1200`);
     urls.push(`https://drive.google.com/thumbnail?id=${enc}&sz=w1200`);
+    urls.push(`https://lh3.googleusercontent.com/d/${enc}=w1200`);
     urls.push(`https://drive.google.com/uc?export=view&id=${enc}`);
   }
   urls.push(raw);
@@ -658,6 +658,8 @@ function setImageWithFallback(img,url,onFail){
     img.onerror=null;
     onFail&&onFail();
   };
+  img.referrerPolicy='no-referrer';
+  img.decoding='async';
   img.src=urls[index];
 }
 function openableImageUrl(url){
@@ -1714,42 +1716,13 @@ function buildImageBlock(imageUrl,title,imageWidth){
     shown.forEach((url,index)=>{
       const link=document.createElement('a');link.className='card-image-link';
       link.style.width=`min(${normalizeImageWidth(imageWidth)}%, var(--note-image-width))`;link.href=openableImageUrl(url);link.target='_blank';link.rel='noopener';link.title='開啟圖片';
-      const img=document.createElement('img');img.className='card-image';img.alt=title||'';img.loading='lazy';
+      const img=document.createElement('img');img.className='card-image';img.alt=title||'';img.loading='lazy';img.referrerPolicy='no-referrer';img.decoding='async';
       img.onload=()=>{if(img.naturalWidth&&img.naturalHeight)link.style.width=`min(${normalizeImageWidth(imageWidth)}%, var(--note-image-width), ${img.naturalWidth}px, calc(var(--note-image-height) * ${img.naturalWidth/img.naturalHeight}))`;};
-      setImageWithFallback(img,url,()=>wrap.classList.add('image-error'));link.appendChild(img);gallery.appendChild(link);
+      setImageWithFallback(img,url,()=>{link.classList.add('image-link-error');const msg=document.createElement('span');msg.className='image-page-fallback';msg.textContent='圖片無法預覽，點此開啟';link.appendChild(msg);});link.appendChild(img);gallery.appendChild(link);
     });
     if(mode==='pages'&&urls.length>1){const controls=document.createElement('div');controls.className='note-gallery-controls';const prev=document.createElement('button');prev.textContent='←';prev.title='上一頁';prev.disabled=!wrap._page;prev.onclick=e=>{e.preventDefault();wrap._page=Math.max(0,(wrap._page||0)-1);render();};const label=document.createElement('span');label.className='note-gallery-page';label.textContent=`第 ${(wrap._page||0)+1} / ${urls.length} 頁`;const next=document.createElement('button');next.textContent='→';next.title='下一頁';next.disabled=(wrap._page||0)>=urls.length-1;next.onclick=e=>{e.preventDefault();wrap._page=Math.min(urls.length-1,(wrap._page||0)+1);render();};controls.append(prev,label,next);wrap.appendChild(controls);}
     if(mode==='grid'&&urls.length>1){const label=document.createElement('div');label.className='note-gallery-urls';label.textContent=`共 ${urls.length} 張圖片`;wrap.appendChild(label);}
   };render();return wrap;
-  /* legacy implementation retained below only as unreachable reference */
-  const link=document.createElement('a');
-  link.className='card-image-link';
-  const requestedWidth=normalizeImageWidth(imageWidth);
-  link.style.width=`min(${requestedWidth}%, var(--note-image-width))`;
-  link.href=openableImageUrl(imageUrl||normalized);
-  link.target='_blank';
-  link.rel='noopener';
-  link.title='開啟圖片';
-  const img=document.createElement('img');
-  img.className='card-image';
-  img.alt=title||'';
-  img.loading='lazy';
-  img.onload=()=>{
-    if(!img.naturalWidth||!img.naturalHeight)return;
-    // Limit the actual frame as well as the image; never enlarge a small source.
-    link.style.width=`min(${requestedWidth}%, var(--note-image-width), ${img.naturalWidth}px, calc(var(--note-image-height) * ${img.naturalWidth/img.naturalHeight}))`;
-  };
-  setImageWithFallback(img,imageUrl||normalized,()=>wrap.classList.add('image-error'));
-  link.appendChild(img);
-  const fallback=document.createElement('a');
-  fallback.className='image-fallback';
-  fallback.href=openableImageUrl(imageUrl||normalized);
-  fallback.target='_blank';
-  fallback.rel='noopener';
-  fallback.textContent='圖片無法顯示，點此開啟原圖';
-  wrap.appendChild(link);
-  wrap.appendChild(fallback);
-  return wrap;
 }
 
 function mentionCandidates(skipId){
