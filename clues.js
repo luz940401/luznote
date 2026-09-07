@@ -178,4 +178,6 @@
   $('connection-form').onsubmit=async e=>{e.preventDefault();const value=$('url-input').value.trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec(?:\?.*)?$/.test(value)){$('connection-error').textContent='請貼上以 /exec 結尾的 Google Apps Script 網址。';return;}gsUrl=value;localStorage.setItem(URLKEY,value);$('connection').close();await refresh();};
   window.addEventListener('storage',e=>{if(e.key===KEY&&!busy){app=store.read();render();if($('viewer').open&&!live().some(c=>c.id===activeId))$('viewer').close();}if(e.key===URLKEY)gsUrl=e.newValue||'';});
   refresh();
+  const hashClue=decodeURIComponent((location.hash||'').replace(/^#clue=/,''));
+  if(hashClue){const wait=()=>{if(live().some(c=>c.id===hashClue))view(hashClue);else setTimeout(wait,120);};setTimeout(wait,120);}
 })();

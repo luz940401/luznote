@@ -166,6 +166,7 @@ main{width:100%;max-width:1440px;margin:0 auto;padding:24px 0 100px}
 .image-fallback{display:none;align-items:center;width:max-content;max-width:100%;border:1px solid #d8c8a8;background:#fffaf0;color:#68460e;border-radius:7px;padding:7px 10px;font-size:12px;text-decoration:none}
 .card-image-wrap.image-error .card-image-link{display:none}
 .card-image-wrap.image-error .image-fallback{display:inline-flex}
+.note-gallery-controls{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px}.note-gallery-controls button{border:1px solid #d8d0c4;border-radius:6px;background:#fff;padding:4px 9px;color:#625545;cursor:pointer}.note-gallery-page{font-size:11px;color:#8b7d6b}.note-gallery-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.note-gallery-grid .card-image-link{width:100%!important}.note-gallery-grid .card-image{max-height:220px}.note-gallery-urls{font-size:11px;color:#867661;margin-top:5px}
 .card-note{font-size:14px;color:#2a2a2a;line-height:1.9;white-space:pre-wrap;word-break:break-word;font-family:'Noto Sans TC',sans-serif;font-weight:400}
 .card-note strong,.entity-note strong{font-weight:700}
 .mention-link{border:0;border-bottom:1px dotted #6a7f50;background:#f3f8e8;color:#405c24;border-radius:4px;padding:0 4px;font:inherit;cursor:pointer}
@@ -175,6 +176,8 @@ main{width:100%;max-width:1440px;margin:0 auto;padding:24px 0 100px}
 .entity-card-img{display:block;width:auto;height:auto;max-width:100%;max-height:none;object-fit:contain;border-radius:10px;border:1px solid #e0dbd2;margin:8px auto 12px;background:transparent;cursor:zoom-in}
 .entity-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .entity-note{font-size:14px;color:#333;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+.clue-select{min-height:110px;padding:6px}.clue-select option{padding:6px 4px}
+.entity-clues{margin-top:16px;border-top:1px solid #e4ddd4;padding-top:12px}.entity-clues-title{font-size:12px;color:#8b7d6b;font-weight:700;margin-bottom:8px}.entity-clue-card{display:flex;gap:10px;padding:9px;margin-top:7px;border:1px solid #e1d8cb;border-radius:8px;background:#faf8f4}.entity-clue-card>img{width:72px;height:72px;object-fit:cover;border-radius:6px;background:#eee8de;flex:none}.entity-clue-body{min-width:0;line-height:1.55}.entity-clue-body strong{display:block}.entity-clue-count{font-size:11px;color:#8a765a;margin-left:7px}.entity-clue-note{font-size:12px;color:#776b5d;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin:3px 0}.entity-clue-link{font-size:12px;color:#536c38}
 .edit-form{padding:2px 0 0;display:flex;flex-direction:column;gap:8px}
 .form-label{font-size:11px;color:#aaa;font-weight:500;letter-spacing:.06em;margin-bottom:3px}
 .form-row{display:flex;gap:8px;flex-wrap:wrap}
@@ -430,6 +433,7 @@ body.mobile-cloud-reader .node-row{gap:0}
     <img class="entity-card-img" id="entity-img" alt="" style="display:none">
     <a class="image-fallback" id="entity-img-fallback" target="_blank" rel="noopener" style="display:none">圖片無法顯示，點此開啟原圖</a>
     <div class="entity-note" id="entity-note"></div>
+    <div class="entity-clues" id="entity-clues" style="display:none"></div>
     <div class="edit-form" id="entity-edit-form" style="display:none;margin-top:12px">
       <div class="form-row">
         <div class="form-group"><div class="form-label">名稱</div><input class="inp" id="entity-edit-name"></div>
@@ -448,6 +452,7 @@ body.mobile-cloud-reader .node-row{gap:0}
       <div class="form-group"><div class="form-label">Google Drive 圖片連結</div><input class="inp" id="entity-edit-img" placeholder="貼上 Google Drive 分享連結或圖片網址"><div class="hint-text">Drive 圖片請設定為「知道連結的任何人可查看」。</div></div>
       <div class="form-group"><div class="form-label">圖片寬度</div><div class="image-width-control"><input id="entity-edit-img-width" type="range" min="20" max="100" step="1" value="100" oninput="document.getElementById('entity-edit-img-width-out').value=this.value+'%'"><output id="entity-edit-img-width-out">100%</output></div></div>
       <div class="form-group"><div class="form-label">描述內容</div><div class="rich-note-toolbar"><button type="button" class="rich-note-tool" onclick="formatNoteSelection('entity-edit-note','bold')" title="粗體"><strong>B</strong></button><button type="button" class="rich-note-tool" onclick="formatNoteSelection('entity-edit-note','underline')" title="底線"><u>U</u></button><span class="rich-note-hint">先選取文字，再套用格式</span></div><textarea class="inp" id="entity-edit-note" placeholder="外觀、立場、關係、劇情描述..."></textarea></div>
+      <div class="form-group"><div class="form-label">連結線索收藏</div><select class="sel clue-select" id="entity-edit-clues" multiple size="5"></select><div class="hint-text">可按住 Ctrl／Command 選取多筆；詞條開啟後會顯示這些線索的圖片與內容。</div></div>
     </div>
     <div class="modal-btns" style="margin-top:16px">
       <button class="btn ghost" onclick="document.getElementById('entity-modal').classList.remove('open')">關閉</button>
@@ -478,6 +483,7 @@ body.mobile-cloud-reader .node-row{gap:0}
       <div class="form-group"><div class="form-label">Google Drive 圖片連結</div><input class="inp" id="qe-img" placeholder="貼上 Google Drive 分享連結或圖片網址"></div>
       <div class="form-group"><div class="form-label">圖片寬度</div><div class="image-width-control"><input id="qe-img-width" type="range" min="20" max="100" step="1" value="100" oninput="document.getElementById('qe-img-width-out').value=this.value+'%'"><output id="qe-img-width-out">100%</output></div></div>
       <div class="form-group"><div class="form-label">小備註</div><div class="rich-note-toolbar"><button type="button" class="rich-note-tool" onclick="formatNoteSelection('qe-note','bold')" title="粗體"><strong>B</strong></button><button type="button" class="rich-note-tool" onclick="formatNoteSelection('qe-note','underline')" title="底線"><u>U</u></button><span class="rich-note-hint">先選取文字，再套用格式</span></div><textarea class="inp" id="qe-note" placeholder="外觀、立場、關係、第一次登場..."></textarea></div>
+      <div class="form-group"><div class="form-label">連結線索收藏</div><select class="sel clue-select" id="qe-clues" multiple size="5"></select><div class="hint-text">選取後，開啟詞條即可看到線索的圖片與內容。</div></div>
       <div class="modal-btns">
         <button class="btn ghost" onclick="document.getElementById('quick-entity-modal').classList.remove('open')">取消</button>
         <button class="btn" onclick="saveQuickEntitiesFromSelection()">批量建立</button>
@@ -972,7 +978,8 @@ function normalizeEntities(list){
     granDate:normalizeGranDate(e.granDate||extractGranDateFromNote(e.note||'')),
     imageUrl:normalizeImageUrl(e.imageUrl||''),
     imageWidth:normalizeImageWidth(e.imageWidth),
-    created:e.created||new Date().toLocaleDateString('zh-TW')
+    created:e.created||new Date().toLocaleDateString('zh-TW'),
+    clueIds:[...new Set((Array.isArray(e.clueIds)?e.clueIds:[]).map(String).filter(Boolean))]
   }));
 }
 function mergeEntityLists(...lists){
@@ -1020,6 +1027,9 @@ function normalizeNode(n){
   if(n.treeOpen===undefined)n.treeOpen=true;
   if(n.imageUrl===undefined)n.imageUrl='';
   n.imageUrl=normalizeImageUrl(n.imageUrl);
+  n.imageUrls=[...new Set((Array.isArray(n.imageUrls)?n.imageUrls:(n.imageUrl?[n.imageUrl]:[])).map(normalizeImageUrl).filter(Boolean))];
+  if(n.imageUrls.length)n.imageUrl=n.imageUrls[0];
+  n.imageMode=n.imageMode==='grid'?'grid':'pages';
   n.imageWidth=normalizeImageWidth(n.imageWidth);
   if(!n.status)n.status='進行中';
   if(!n.created)n.created=new Date().toLocaleDateString('zh-TW');
@@ -1041,12 +1051,12 @@ function ensureDataIntegrity(){
   },0);
   nextId=Math.max(nextId,maxId+1);
 }
-function mk(title,note,tag,parentId,ci,imageUrl,status,granDate){
+function mk(title,note,tag,parentId,ci,imageUrl,status,granDate,imageUrls=[],imageMode='pages'){
   const id=uid();
   const gd=normalizeGranDate(granDate)||extractGranDateFromNote(note);
   nodes[id]={id,title,note:note||'',tag:tag||'事件',parentId:parentId||null,
     children:[],expanded:true,open:false,treeOpen:true,ci:ci!==undefined?ci:0,
-    imageUrl:normalizeImageUrl(imageUrl||''),imageWidth:100,status:status||'進行中',
+    imageUrl:normalizeImageUrl(imageUrl||''),imageUrls:[...new Set((imageUrls.length?imageUrls:[imageUrl]).map(normalizeImageUrl).filter(Boolean))],imageMode:imageMode==='grid'?'grid':'pages',imageWidth:100,status:status||'進行中',
     granDate:gd,
     created:new Date().toLocaleDateString('zh-TW'),updatedAt:nowIso()};
   nodes[id].note=syncGranDateToNote(nodes[id].note,gd);
@@ -1513,7 +1523,7 @@ function rNode(id,depth){
   body.className='card-body'+((n.open||editingId===id)?' open':'');
   if(editingId===id){body.appendChild(buildEditForm(n));}
   else {
-    const imageBlock=buildImageBlock(n.imageUrl,n.title,n.imageWidth);
+    const imageBlock=buildImageBlock(n.imageUrls||[n.imageUrl].filter(Boolean),n.title,n.imageWidth,n.imageMode);
     if(imageBlock)body.appendChild(imageBlock);
     if(n.note){
       const noteEl=document.createElement('div');
@@ -1619,6 +1629,32 @@ function cleanEntityName(value){
     .replace(/[\s"'「」『』《》〈〉【】[\]()（）,，.。:：;；!?！？、]+$/,'')
     .trim();
 }
+function allClues(){
+  try{
+    const data=JSON.parse(localStorage.getItem(APP_KEY)||localStorage.getItem(LEGACY_APP_KEY)||'{}');
+    return (Array.isArray(data.clues)?data.clues:[]).filter(c=>c&&!c.deletedAt&&c.id);
+  }catch{return [];}
+}
+function populateClueSelect(select,selected=[]){
+  if(!select)return;
+  const ids=new Set((selected||[]).map(String));select.innerHTML='';
+  const clues=allClues();
+  if(!clues.length){const opt=document.createElement('option');opt.textContent='目前尚無線索收藏';opt.disabled=true;select.appendChild(opt);return;}
+  clues.forEach(c=>{const opt=document.createElement('option');opt.value=String(c.id);opt.textContent=`${c.title||'未命名線索'}${c.kind?' · '+c.kind:''}`;opt.selected=ids.has(String(c.id));select.appendChild(opt);});
+}
+function renderEntityClues(ids=[]){
+  const wrap=document.getElementById('entity-clues');if(!wrap)return;
+  const wanted=new Set((ids||[]).map(String));const clues=allClues().filter(c=>wanted.has(String(c.id)));
+  wrap.innerHTML='';if(!clues.length){wrap.style.display='none';return;}wrap.style.display='block';
+  const heading=document.createElement('div');heading.className='entity-clues-title';heading.textContent='相關線索收藏';wrap.appendChild(heading);
+  clues.forEach(c=>{const card=document.createElement('div');card.className='entity-clue-card';const pages=Array.isArray(c.images)&&c.images.length?c.images:[c.imageUrl].filter(Boolean);
+    if(pages[0]){const img=document.createElement('img');img.alt=c.title||'';img.loading='lazy';setImageWithFallback(img,pages[0],()=>img.remove());card.appendChild(img);}
+    const body=document.createElement('div');body.className='entity-clue-body';const title=document.createElement('strong');title.textContent=c.title||'未命名線索';body.appendChild(title);
+    if(pages.length>1){const count=document.createElement('span');count.className='entity-clue-count';count.textContent=`${pages.length} 張圖片`;body.appendChild(count);}
+    const note=document.createElement('div');note.className='entity-clue-note';note.textContent=c.note||'尚未填寫說明。';body.appendChild(note);
+    const link=document.createElement('a');link.href=`./clues.html?v=20260907-3#clue=${encodeURIComponent(c.id)}`;link.target='_blank';link.rel='noopener';link.textContent='開啟線索收藏 ↗';link.className='entity-clue-link';body.appendChild(link);card.appendChild(body);wrap.appendChild(card);
+  });
+}
 function entityNameKey(value){
   return cleanEntityName(value).normalize('NFKC').toLocaleLowerCase();
 }
@@ -1666,10 +1702,26 @@ function restoreMissingImageUrls(found){
   return recovered;
 }
 function buildImageBlock(imageUrl,title,imageWidth){
-  const normalized=normalizeImageUrl(imageUrl);
-  if(!normalized)return null;
+  const urls=[...new Set((Array.isArray(imageUrl)?imageUrl:[imageUrl]).map(normalizeImageUrl).filter(Boolean))];
+  if(!urls.length)return null;
+  const mode=arguments[3]==='grid'?'grid':'pages';
   const wrap=document.createElement('div');
   wrap.className='card-image-wrap';
+  const gallery=document.createElement('div');gallery.className=mode==='grid'?'note-gallery-grid':'note-gallery-pages';wrap.appendChild(gallery);
+  const render=()=>{
+    gallery.replaceChildren();
+    const shown=mode==='grid'?urls:[urls[wrap._page||0]];
+    shown.forEach((url,index)=>{
+      const link=document.createElement('a');link.className='card-image-link';
+      link.style.width=`min(${normalizeImageWidth(imageWidth)}%, var(--note-image-width))`;link.href=openableImageUrl(url);link.target='_blank';link.rel='noopener';link.title='開啟圖片';
+      const img=document.createElement('img');img.className='card-image';img.alt=title||'';img.loading='lazy';
+      img.onload=()=>{if(img.naturalWidth&&img.naturalHeight)link.style.width=`min(${normalizeImageWidth(imageWidth)}%, var(--note-image-width), ${img.naturalWidth}px, calc(var(--note-image-height) * ${img.naturalWidth/img.naturalHeight}))`;};
+      setImageWithFallback(img,url,()=>wrap.classList.add('image-error'));link.appendChild(img);gallery.appendChild(link);
+    });
+    if(mode==='pages'&&urls.length>1){const controls=document.createElement('div');controls.className='note-gallery-controls';const prev=document.createElement('button');prev.textContent='←';prev.title='上一頁';prev.disabled=!wrap._page;prev.onclick=e=>{e.preventDefault();wrap._page=Math.max(0,(wrap._page||0)-1);render();};const label=document.createElement('span');label.className='note-gallery-page';label.textContent=`第 ${(wrap._page||0)+1} / ${urls.length} 頁`;const next=document.createElement('button');next.textContent='→';next.title='下一頁';next.disabled=(wrap._page||0)>=urls.length-1;next.onclick=e=>{e.preventDefault();wrap._page=Math.min(urls.length-1,(wrap._page||0)+1);render();};controls.append(prev,label,next);wrap.appendChild(controls);}
+    if(mode==='grid'&&urls.length>1){const label=document.createElement('div');label.className='note-gallery-urls';label.textContent=`共 ${urls.length} 張圖片`;wrap.appendChild(label);}
+  };render();return wrap;
+  /* legacy implementation retained below only as unreachable reference */
   const link=document.createElement('a');
   link.className='card-image-link';
   const requestedWidth=normalizeImageWidth(imageWidth);
@@ -1769,12 +1821,14 @@ function openEntityModal(id){
     if(fallback)fallback.style.display='none';
   }
   document.getElementById('entity-note').innerHTML=item.note?renderRichNote(item.note,id):'尚未填寫備註。';
+  renderEntityClues(item.clueIds||[]);
   document.getElementById('entity-edit-name').value=item.name||'';
   document.getElementById('entity-edit-type').value=[...document.getElementById('entity-edit-type').options].some(o=>o.value===item.type)?item.type:'角色';
   document.getElementById('entity-edit-img').value=item.imageUrl||'';
   document.getElementById('entity-edit-img-width').value=imageWidth;
   document.getElementById('entity-edit-img-width-out').value=imageWidth+'%';
   document.getElementById('entity-edit-note').value=item.note||'';
+  populateClueSelect(document.getElementById('entity-edit-clues'),item.clueIds||[]);
   const editBtn=document.getElementById('entity-edit-btn');
   const cancelEditBtn=document.getElementById('entity-cancel-edit-btn');
   const saveBtn=document.getElementById('entity-save-btn');
@@ -1807,6 +1861,7 @@ function saveEntityModalEdit(){
   const imageUrl=normalizeImageUrl(document.getElementById('entity-edit-img').value);
   const imageWidth=normalizeImageWidth(document.getElementById('entity-edit-img-width').value);
   const note=document.getElementById('entity-edit-note').value;
+  const clueIds=[...document.getElementById('entity-edit-clues').selectedOptions].map(o=>o.value);
   makeBackup('彈窗編輯前自動備份');
   if(item.nodeId){
     const n=nodes[item.nodeId];
@@ -1817,10 +1872,10 @@ function saveEntityModalEdit(){
     n.imageUrl=imageUrl;
     n.imageWidth=imageWidth;
     touchNode(n);
-    syncNodeToEntity(n);
+    syncNodeToEntity(n); const linked=entities.find(e=>e.id===n.entityId); if(linked)linked.clueIds=clueIds;
   }else if(item.entityId){
     const e=entities.find(x=>x.id===item.entityId);
-    if(e)Object.assign(e,{name,type,imageUrl,imageWidth,note,granDate:extractGranDateFromNote(note)||normalizeGranDate(e.granDate)});
+    if(e)Object.assign(e,{name,type,imageUrl,imageWidth,note,clueIds,granDate:extractGranDateFromNote(note)||normalizeGranDate(e.granDate)});
     saveEntities();
     touchData();
   }
@@ -1845,14 +1900,14 @@ function getEntityLike(key){
   if(!key)return null;
   if(key.startsWith('node:')){
     const id=key.slice(5),n=nodes[id];
-    return n?{name:n.title,type:n.tag,note:n.note,granDate:n.granDate,imageUrl:n.imageUrl,imageWidth:n.imageWidth,created:n.created,nodeId:id}:null;
+    return n?{name:n.title,type:n.tag,note:n.note,granDate:n.granDate,imageUrl:n.imageUrl,imageWidth:n.imageWidth,created:n.created,nodeId:id,clueIds:n.clueIds||[]}:null;
   }
   if(key.startsWith('entity:')){
     const e=entities.find(x=>x.id===key.slice(7));
-    return e?{name:e.name,type:e.type,note:e.note,granDate:e.granDate,imageUrl:e.imageUrl,imageWidth:e.imageWidth,created:e.created,entityId:e.id}:null;
+    return e?{name:e.name,type:e.type,note:e.note,granDate:e.granDate,imageUrl:e.imageUrl,imageWidth:e.imageWidth,created:e.created,entityId:e.id,clueIds:e.clueIds||[]}:null;
   }
   const n=nodes[key];
-  return n?{name:n.title,type:n.tag,note:n.note,granDate:n.granDate,imageUrl:n.imageUrl,imageWidth:n.imageWidth,created:n.created,nodeId:key}:null;
+  return n?{name:n.title,type:n.tag,note:n.note,granDate:n.granDate,imageUrl:n.imageUrl,imageWidth:n.imageWidth,created:n.created,nodeId:key,clueIds:n.clueIds||[]}:null;
 }
 
 function nodeEntityType(tag){
@@ -1889,6 +1944,7 @@ function syncNodeToEntity(n){
     note:n.note||'',
     granDate:normalizeGranDate(n.granDate),
     sourceNodeId:n.id,
+    clueIds:[...new Set((n.clueIds||existing?.clueIds||[]).map(String))],
     created:existing?.created||n.created||new Date().toLocaleDateString('zh-TW')
   };
   if(existing)Object.assign(existing,payload);
@@ -1919,6 +1975,7 @@ function openQuickEntityModal(){
   document.getElementById('qe-custom-type').value='';
   toggleQuickCustomType();
   document.getElementById('qe-note').value='';
+  populateClueSelect(document.getElementById('qe-clues'),[]);
   document.getElementById('qe-img').value='';
   document.getElementById('qe-img-width').value='100';
   document.getElementById('qe-img-width-out').value='100%';
@@ -1961,7 +2018,7 @@ function guessQuickEntityType(name,sourceText=''){
   if(/(城|鎮|村|都市|港|堡|塔|門|要塞)$/.test(text) || /都市/.test(text))return '城鎮';
   return '角色';
 }
-function upsertQuickEntity(name,{type,note='',imageUrl='',imageWidth=100}={}){
+function upsertQuickEntity(name,{type,note='',imageUrl='',imageWidth=100,clueIds=[]}={}){
   const cleanName=cleanEntityName(name);
   if(!cleanName)return null;
   const existing=entities.find(e=>entityNameKey(e.name)===entityNameKey(cleanName));
@@ -1975,7 +2032,8 @@ function upsertQuickEntity(name,{type,note='',imageUrl='',imageWidth=100}={}){
     imageWidth:normalizeImageWidth(imageWidth),
     note,
     granDate,
-    created:existing?.created||new Date().toLocaleDateString('zh-TW')
+    created:existing?.created||new Date().toLocaleDateString('zh-TW'),
+    clueIds:[...new Set((clueIds.length?clueIds:(existing?.clueIds||[])).map(String))]
   };
   if(existing){
     Object.assign(existing,{
@@ -1985,6 +2043,7 @@ function upsertQuickEntity(name,{type,note='',imageUrl='',imageWidth=100}={}){
       imageWidth:normalizeImageWidth(imageWidth||existing.imageWidth),
       note:note||existing.note,
       granDate:granDate||existing.granDate,
+      clueIds:payload.clueIds.length?payload.clueIds:existing.clueIds||[],
       created:existing.created||payload.created
     });
     return {entity:existing,created:false};
@@ -2007,7 +2066,8 @@ async function saveQuickEntity(){
     type,
     imageUrl:document.getElementById('qe-img').value,
     imageWidth:document.getElementById('qe-img-width').value,
-    note:document.getElementById('qe-note').value
+    note:document.getElementById('qe-note').value,
+    clueIds:[...document.getElementById('qe-clues').selectedOptions].map(o=>o.value)
   });
   saveEntities();
   document.getElementById('quick-entity-modal').classList.remove('open');
@@ -2067,7 +2127,8 @@ function buildEditForm(n){
       <div class="form-group" style="flex:0;min-width:90px"><div class="form-label">類型</div><select class="sel" id="ef-tag-${n.id}">${tagOpts(n.tag)}</select></div>
       <div class="form-group" style="flex:0;min-width:100px"><div class="form-label">狀態</div><select class="sel" id="ef-status-${n.id}">${statusOpts(n.status||'進行中')}</select></div>
     </div>
-    <div class="form-group"><div class="form-label">Google Drive 圖片連結</div><input class="inp" id="ef-img-${n.id}" value="${esc(n.imageUrl||'')}" placeholder="貼上 Google Drive 分享連結或圖片網址"><div class="hint-text">Drive 檔案權限需設為「知道連結的任何人可查看」。</div></div>
+    <div class="form-group"><div class="form-label">Google Drive 圖片連結（一行一張）</div><textarea class="inp" id="ef-img-${n.id}" rows="4" placeholder="每行一張圖片連結">${esc((n.imageUrls||[n.imageUrl].filter(Boolean)).join('\n'))}</textarea><div class="hint-text">第一張是第一頁或封面。</div></div>
+    <div class="form-group"><div class="form-label">圖片呈現</div><select class="sel" id="ef-img-mode-${n.id}"><option value="pages"${n.imageMode!=='grid'?' selected':''}>翻頁顯示</option><option value="grid"${n.imageMode==='grid'?' selected':''}>一頁多格</option></select></div>
     <div class="form-group"><div class="form-label">圖片寬度</div><div class="image-width-control"><input id="ef-img-width-${n.id}" type="range" min="20" max="100" step="1" value="${normalizeImageWidth(n.imageWidth)}" oninput="document.getElementById('ef-img-width-out-${n.id}').value=this.value+'%'"><output id="ef-img-width-out-${n.id}">${normalizeImageWidth(n.imageWidth)}%</output></div></div>
     <div class="form-group"><div class="form-label">筆記內容</div>${richNoteToolbar('ef-n-'+n.id)}<textarea class="inp" id="ef-n-${n.id}" placeholder="詳細記錄...">${esc(n.note)}</textarea></div>
     <div><div class="form-label">節點顏色</div><div class="swatches" id="${swId}"></div></div>
@@ -2092,7 +2153,9 @@ function buildEditForm(n){
       n.note=syncGranDateToNote(document.getElementById('ef-n-'+n.id).value,n.granDate);
       n.tag=document.getElementById('ef-tag-'+n.id).value;
       n.status=document.getElementById('ef-status-'+n.id).value;
-      n.imageUrl=normalizeImageUrl(document.getElementById('ef-img-'+n.id).value);
+      n.imageUrls=[...new Set(document.getElementById('ef-img-'+n.id).value.split(/\r?\n/).map(normalizeImageUrl).filter(Boolean))];
+      n.imageUrl=n.imageUrls[0]||'';
+      n.imageMode=document.getElementById('ef-img-mode-'+n.id).value;
       n.imageWidth=normalizeImageWidth(document.getElementById('ef-img-width-'+n.id).value);
       n.ci=ci;touchNode(n);
       if(shouldSyncNodeToEntity(n))syncNodeToEntity(n);
@@ -2113,7 +2176,8 @@ function buildChildForm(pid){
       <div class="form-group" style="flex:0;min-width:90px"><div class="form-label">類型</div><select class="sel" id="cf-tag-${pid}">${tagOpts('事件')}</select></div>
       <div class="form-group" style="flex:0;min-width:100px"><div class="form-label">狀態</div><select class="sel" id="cf-status-${pid}">${statusOpts('進行中')}</select></div>
     </div>
-    <div class="form-group"><div class="form-label">Google Drive 圖片連結（可選）</div><input class="inp" id="cf-img-${pid}" placeholder="貼上 Google Drive 分享連結或圖片網址"></div>
+    <div class="form-group"><div class="form-label">Google Drive 圖片連結（一行一張，可選）</div><textarea class="inp" id="cf-img-${pid}" rows="3" placeholder="每行一張圖片連結"></textarea></div>
+    <div class="form-group"><div class="form-label">圖片呈現</div><select class="sel" id="cf-img-mode-${pid}"><option value="pages">翻頁顯示</option><option value="grid">一頁多格</option></select></div>
     <div class="form-group"><div class="form-label">圖片寬度</div><div class="image-width-control"><input id="cf-img-width-${pid}" type="range" min="20" max="100" step="1" value="100" oninput="document.getElementById('cf-img-width-out-${pid}').value=this.value+'%'"><output id="cf-img-width-out-${pid}">100%</output></div></div>
     <div class="form-group"><div class="form-label">筆記（可選）</div>${richNoteToolbar('cf-n-'+pid)}<textarea class="inp" id="cf-n-${pid}" placeholder="詳細記錄..."></textarea></div>
     <div><div class="form-label">節點顏色</div><div class="swatches" id="${swId}"></div></div>
@@ -2148,8 +2212,8 @@ function buildChildForm(pid){
       const note=syncGranDateToNote(document.getElementById('cf-n-'+pid).value,granDate);
       const tag=document.getElementById('cf-tag-'+pid).value;
       const status=document.getElementById('cf-status-'+pid).value;
-      const imageUrl=normalizeImageUrl(document.getElementById('cf-img-'+pid).value);
-      const nid=mk(t,note,tag,pid,ci,imageUrl,status,granDate);
+      const imageUrls=document.getElementById('cf-img-'+pid).value.split(/\r?\n/).map(normalizeImageUrl).filter(Boolean);
+      const nid=mk(t,note,tag,pid,ci,imageUrls[0]||'',status,granDate,imageUrls,document.getElementById('cf-img-mode-'+pid).value);
       nodes[nid].imageWidth=normalizeImageWidth(document.getElementById('cf-img-width-'+pid).value);
       nodes[pid].children.push(nid);nodes[pid].expanded=true;
       addingChildOf=null;save();render();

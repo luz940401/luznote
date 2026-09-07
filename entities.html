@@ -341,7 +341,8 @@ function normalize(list){
     note:e.note||'',
     granDate:e.granDate||'',
     sourceNodeId:e.sourceNodeId||'',
-    created:e.created||new Date().toLocaleDateString('zh-TW')
+    created:e.created||new Date().toLocaleDateString('zh-TW'),
+    clueIds:[...new Set((Array.isArray(e.clueIds)?e.clueIds:[]).map(String).filter(Boolean))]
   }));
 }
 function mergeEntryLists(...lists){
@@ -465,6 +466,7 @@ function syncEntryToNode(entry,app){
   node.imageUrl=normalizeImageUrl(entry.imageUrl||'');
   node.imageWidth=normalizeImageWidth(entry.imageWidth);
   node.entityId=entry.id;
+  node.clueIds=entry.clueIds||[];
   node.updatedAt=nowIso();
   entry.sourceNodeId=node.id;
 }
