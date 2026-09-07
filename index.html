@@ -167,6 +167,7 @@ main{width:100%;max-width:1440px;margin:0 auto;padding:24px 0 100px}
 .card-image-wrap.image-error .card-image-link{display:none}
 .card-image-wrap.image-error .image-fallback{display:inline-flex}
 .note-gallery-controls{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px}.note-gallery-controls button{border:1px solid #d8d0c4;border-radius:6px;background:#fff;padding:4px 9px;color:#625545;cursor:pointer}.note-gallery-page{font-size:11px;color:#8b7d6b}.note-gallery-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.note-gallery-grid .card-image-link{width:100%!important}.note-gallery-grid .card-image{max-height:220px}.note-gallery-urls{font-size:11px;color:#867661;margin-top:5px}.card-image-link.image-link-error{min-height:70px;display:flex;align-items:center;justify-content:center;color:#8b6d4e;font-size:12px;background:#f7f2e9;text-decoration:none}.card-image-link.image-link-error .card-image{display:none}.image-page-fallback{padding:10px}
+.note-lightbox{display:none;position:fixed;inset:0;z-index:260;background:rgba(18,15,11,.82);align-items:center;justify-content:center;padding:22px}.note-lightbox.open{display:flex}.note-lightbox-panel{width:min(1100px,96vw);max-height:94vh;background:#faf8f4;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 18px 60px #0008}.note-lightbox-head{display:flex;align-items:center;gap:10px}.note-lightbox-title{font-weight:700;flex:1;overflow-wrap:anywhere}.note-lightbox-close{border:0;background:transparent;font-size:28px;color:#6b5b48;cursor:pointer}.note-lightbox-image-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#eee8de;border-radius:8px;overflow:auto}.note-lightbox-image{display:block;max-width:100%;max-height:72vh;width:auto;height:auto;object-fit:contain}.note-lightbox-tools{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap}.note-lightbox-tools button{border:1px solid #d8d0c4;border-radius:7px;background:#fff;padding:7px 12px;color:#625545;cursor:pointer}.note-lightbox-tools button:disabled{opacity:.45}.note-lightbox-drive{font-size:12px;color:#6b583e;text-decoration:underline}
 .card-note{font-size:14px;color:#2a2a2a;line-height:1.9;white-space:pre-wrap;word-break:break-word;font-family:'Noto Sans TC',sans-serif;font-weight:400}
 .card-note strong,.entity-note strong{font-weight:700}
 .mention-link{border:0;border-bottom:1px dotted #6a7f50;background:#f3f8e8;color:#405c24;border-radius:4px;padding:0 4px;font:inherit;cursor:pointer}
@@ -397,6 +398,12 @@ body.mobile-cloud-reader .node-row{gap:0}
 </main>
 <div id="drag-ghost"></div>
 <button id="quick-entity-btn" onclick="openQuickEntityModal()">＋ 建立詞條</button>
+<div class="note-lightbox" id="note-lightbox" role="dialog" aria-modal="true" aria-label="筆記圖片預覽">
+  <div class="note-lightbox-panel"><div class="note-lightbox-head"><strong class="note-lightbox-title" id="note-lightbox-title"></strong><button class="note-lightbox-close" id="note-lightbox-close" aria-label="關閉圖片預覽">×</button></div>
+    <div class="note-lightbox-image-wrap"><img class="note-lightbox-image" id="note-lightbox-image" alt=""><span id="note-lightbox-error" style="display:none">圖片暫時無法載入</span></div>
+    <div class="note-lightbox-tools"><button id="note-lightbox-prev">← 上一頁</button><span id="note-lightbox-page"></span><button id="note-lightbox-next">下一頁 →</button><a class="note-lightbox-drive" id="note-lightbox-drive" target="_blank" rel="noopener">開啟 Google Drive 原圖 ↗</a></div>
+  </div>
+</div>
 
 <!-- 清除確認 Modal -->
 <div class="modal-bg" id="clr-modal">
@@ -1726,7 +1733,7 @@ function buildImageBlock(imageUrl,title,imageWidth){
     const shown=mode==='grid'?urls:[urls[wrap._page||0]];
     shown.forEach((url,index)=>{
       const link=document.createElement('a');link.className='card-image-link';
-      link.style.width=`min(${normalizeImageWidth(imageWidth)}%, var(--note-image-width))`;link.href=openableImageUrl(url);link.target='_blank';link.rel='noopener';link.title='開啟圖片';
+      link.style.width=`min(${normalizeImageWidth(imageWidth)}%, var(--note-image-width))`;link.href=openableImageUrl(url);link.target='_blank';link.rel='noopener';link.title='放大預覽';link.onclick=e=>{e.preventDefault();openNoteImageViewer(urls,urls.indexOf(url),title);};
       const img=document.createElement('img');img.className='card-image';img.alt=title||'';img.loading='lazy';img.referrerPolicy='no-referrer';img.decoding='async';
       img.onload=()=>{if(img.naturalWidth&&img.naturalHeight)link.style.width=`min(${normalizeImageWidth(imageWidth)}%, var(--note-image-width), ${img.naturalWidth}px, calc(var(--note-image-height) * ${img.naturalWidth/img.naturalHeight}))`;};
       setImageWithFallback(img,url,()=>{link.classList.add('image-link-error');const msg=document.createElement('span');msg.className='image-page-fallback';msg.textContent='圖片無法預覽，點此開啟';link.appendChild(msg);});link.appendChild(img);gallery.appendChild(link);
@@ -1734,6 +1741,29 @@ function buildImageBlock(imageUrl,title,imageWidth){
     if(mode==='pages'&&urls.length>1){const controls=document.createElement('div');controls.className='note-gallery-controls';const prev=document.createElement('button');prev.textContent='←';prev.title='上一頁';prev.disabled=!wrap._page;prev.onclick=e=>{e.preventDefault();wrap._page=Math.max(0,(wrap._page||0)-1);render();};const label=document.createElement('span');label.className='note-gallery-page';label.textContent=`第 ${(wrap._page||0)+1} / ${urls.length} 頁`;const next=document.createElement('button');next.textContent='→';next.title='下一頁';next.disabled=(wrap._page||0)>=urls.length-1;next.onclick=e=>{e.preventDefault();wrap._page=Math.min(urls.length-1,(wrap._page||0)+1);render();};controls.append(prev,label,next);wrap.appendChild(controls);}
     if(mode==='grid'&&urls.length>1){const label=document.createElement('div');label.className='note-gallery-urls';label.textContent=`共 ${urls.length} 張圖片`;wrap.appendChild(label);}
   };render();return wrap;
+}
+let noteViewerUrls=[],noteViewerIndex=0,noteViewerTitle='';
+function openNoteImageViewer(urls,index=0,title=''){
+  noteViewerUrls=urls||[];noteViewerIndex=Math.max(0,Math.min(index,noteViewerUrls.length-1));noteViewerTitle=title||'';
+  const box=document.getElementById('note-lightbox');if(!box||!noteViewerUrls.length)return;
+  box.classList.add('open');document.body.style.overflow='hidden';renderNoteImageViewer();
+}
+function closeNoteImageViewer(){const box=document.getElementById('note-lightbox');if(box)box.classList.remove('open');document.body.style.overflow='';}
+function renderNoteImageViewer(){
+  const url=noteViewerUrls[noteViewerIndex];if(!url)return;
+  const img=document.getElementById('note-lightbox-image'),error=document.getElementById('note-lightbox-error'),drive=document.getElementById('note-lightbox-drive');
+  document.getElementById('note-lightbox-title').textContent=noteViewerTitle;document.getElementById('note-lightbox-page').textContent=`第 ${noteViewerIndex+1} / ${noteViewerUrls.length} 頁`;
+  img.style.display='';error.style.display='none';img.alt=noteViewerTitle;drive.href=openableImageUrl(url);
+  setImageWithFallback(img,url,()=>{img.style.display='none';error.style.display='inline';});
+  document.getElementById('note-lightbox-prev').disabled=noteViewerIndex===0;document.getElementById('note-lightbox-next').disabled=noteViewerIndex===noteViewerUrls.length-1;
+}
+function setupNoteLightbox(){
+  const box=document.getElementById('note-lightbox');if(!box)return;
+  document.getElementById('note-lightbox-close').onclick=closeNoteImageViewer;
+  document.getElementById('note-lightbox-prev').onclick=()=>{if(noteViewerIndex>0){noteViewerIndex--;renderNoteImageViewer();}};
+  document.getElementById('note-lightbox-next').onclick=()=>{if(noteViewerIndex<noteViewerUrls.length-1){noteViewerIndex++;renderNoteImageViewer();}};
+  box.onclick=e=>{if(e.target===box)closeNoteImageViewer();};
+  document.addEventListener('keydown',e=>{if(!box.classList.contains('open'))return;if(e.key==='Escape')closeNoteImageViewer();if(e.key==='ArrowLeft'&&noteViewerIndex>0){noteViewerIndex--;renderNoteImageViewer();}if(e.key==='ArrowRight'&&noteViewerIndex<noteViewerUrls.length-1){noteViewerIndex++;renderNoteImageViewer();}});
 }
 
 function mentionCandidates(skipId){
@@ -2512,6 +2542,7 @@ function moveNode(id, targetId, mode) {
 //  啟動
 // ─────────────────────────────────────────────
 async function init() {
+  setupNoteLightbox();
   document.getElementById('qe-type').addEventListener('change',toggleQuickCustomType);
   enableMobileCloudReader();
   load(); // 先讀本地快取，立刻顯示
