@@ -1673,7 +1673,8 @@ function collectImageFallbacks(){
   const found={nodeById:{},nodeByTitle:{},entityById:{},entityByName:{}};
   const remember=(bucket,key,url)=>{
     const clean=(url||'').toString().trim();
-    if(key&&clean&&!bucket[key])bucket[key]=clean;
+    const generated=/^(?:https:\/\/(?:lh3\.googleusercontent\.com|drive\.google\.com\/(?:thumbnail|uc\?)))/i.test(clean);
+    if(key&&clean&&(!bucket[key]||(!generated&&/^(?:https:\/\/lh3\.googleusercontent\.com|https:\/\/drive\.google\.com\/thumbnail)/i.test(bucket[key]))))bucket[key]=clean;
   };
   const addData=data=>{
     if(!data||typeof data!=='object')return;
@@ -1701,9 +1702,10 @@ function collectImageFallbacks(){
 function restoreMissingImageUrls(found){
   let recovered=0;
   Object.values(nodes).forEach(n=>{
-    if(n.imageUrl)return;
+    const generated=n.imageUrl&&/^(?:https:\/\/(?:lh3\.googleusercontent\.com|drive\.google\.com\/(?:thumbnail|uc\?)))/i.test(n.imageUrl);
+    if(n.imageUrl&&!generated)return;
     const fallback=found.nodeById[n.id]||found.nodeByTitle[entityNameKey(n.title)];
-    if(fallback){n.imageUrl=normalizeImageUrl(fallback);recovered++;}
+    if(fallback&&(!n.imageUrl||!generated||!/^https:\/\/(?:lh3\.googleusercontent\.com|drive\.google\.com\/thumbnail)/i.test(fallback))){n.imageUrl=fallback;n.imageUrls=[fallback];recovered++;}
   });
   entities.forEach(e=>{
     if(e.imageUrl)return;
