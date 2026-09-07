@@ -631,6 +631,9 @@ function extractDriveFileId(url){
 function normalizeImageUrl(url){
   return imageUrlCandidates(url)[0]||'';
 }
+function driveResourceKey(url){
+  try{return new URL(String(url||'').trim()).searchParams.get('resourcekey')||'';}catch{return '';}
+}
 function imageUrlCandidates(url){
   const raw=(url||'').trim();
   if(!raw)return [];
@@ -638,9 +641,13 @@ function imageUrlCandidates(url){
   const urls=[];
   if(id){
     const enc=encodeURIComponent(id);
-    urls.push(`https://drive.google.com/thumbnail?id=${enc}&sz=w1200`);
-    urls.push(`https://lh3.googleusercontent.com/d/${enc}=w1200`);
-    urls.push(`https://drive.google.com/uc?export=view&id=${enc}`);
+    const resource=driveResourceKey(raw);
+    const suffix=resource?`&resourcekey=${encodeURIComponent(resource)}`:'';
+    urls.push(`https://drive.google.com/thumbnail?id=${enc}&sz=w1200${suffix}`);
+    urls.push(`https://lh3.googleusercontent.com/d/${enc}=w1200${resource?'?resourcekey='+encodeURIComponent(resource):''}`);
+    urls.push(`https://drive.google.com/uc?export=view&id=${enc}${suffix}`);
+    urls.push(`https://drive.usercontent.google.com/download?id=${enc}&export=view${suffix}`);
+    urls.push(`https://drive.google.com/uc?export=download&id=${enc}${suffix}`);
   }
   urls.push(raw);
   return [...new Set(urls)];
@@ -665,7 +672,8 @@ function setImageWithFallback(img,url,onFail){
 function openableImageUrl(url){
   const raw=(url||'').trim();
   const id=extractDriveFileId(raw);
-  return id?`https://drive.google.com/file/d/${encodeURIComponent(id)}/view?usp=sharing`:raw;
+  const resource=driveResourceKey(raw);
+  return id?`https://drive.google.com/file/d/${encodeURIComponent(id)}/view?usp=sharing${resource?'&resourcekey='+encodeURIComponent(resource):''}`:raw;
 }
 function openImage(url){
   const target=openableImageUrl(url);
@@ -1028,8 +1036,9 @@ function normalizeNode(n){
   if(n.expanded===undefined)n.expanded=true;
   if(n.treeOpen===undefined)n.treeOpen=true;
   if(n.imageUrl===undefined)n.imageUrl='';
-  n.imageUrl=normalizeImageUrl(n.imageUrl);
-  n.imageUrls=[...new Set((Array.isArray(n.imageUrls)?n.imageUrls:(n.imageUrl?[n.imageUrl]:[])).map(normalizeImageUrl).filter(Boolean))];
+  // Keep the original Drive share URL (including resourcekey). Preview URLs are
+  // generated only when the image is rendered; stripping the key breaks mobile.
+  n.imageUrls=[...new Set((Array.isArray(n.imageUrls)?n.imageUrls:(n.imageUrl?[n.imageUrl]:[])).map(v=>String(v||'').trim()).filter(Boolean))];
   if(n.imageUrls.length)n.imageUrl=n.imageUrls[0];
   n.imageMode=n.imageMode==='grid'?'grid':'pages';
   n.imageWidth=normalizeImageWidth(n.imageWidth);
@@ -1058,7 +1067,7 @@ function mk(title,note,tag,parentId,ci,imageUrl,status,granDate,imageUrls=[],ima
   const gd=normalizeGranDate(granDate)||extractGranDateFromNote(note);
   nodes[id]={id,title,note:note||'',tag:tag||'事件',parentId:parentId||null,
     children:[],expanded:true,open:false,treeOpen:true,ci:ci!==undefined?ci:0,
-    imageUrl:normalizeImageUrl(imageUrl||''),imageUrls:[...new Set((imageUrls.length?imageUrls:[imageUrl]).map(normalizeImageUrl).filter(Boolean))],imageMode:imageMode==='grid'?'grid':'pages',imageWidth:100,status:status||'進行中',
+    imageUrl:String(imageUrl||'').trim(),imageUrls:[...new Set((imageUrls.length?imageUrls:[imageUrl]).map(v=>String(v||'').trim()).filter(Boolean))],imageMode:imageMode==='grid'?'grid':'pages',imageWidth:100,status:status||'進行中',
     granDate:gd,
     created:new Date().toLocaleDateString('zh-TW'),updatedAt:nowIso()};
   nodes[id].note=syncGranDateToNote(nodes[id].note,gd);
@@ -2126,7 +2135,7 @@ function buildEditForm(n){
       n.note=syncGranDateToNote(document.getElementById('ef-n-'+n.id).value,n.granDate);
       n.tag=document.getElementById('ef-tag-'+n.id).value;
       n.status=document.getElementById('ef-status-'+n.id).value;
-      n.imageUrls=[...new Set(document.getElementById('ef-img-'+n.id).value.split(/\r?\n/).map(normalizeImageUrl).filter(Boolean))];
+      n.imageUrls=[...new Set(document.getElementById('ef-img-'+n.id).value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean))];
       n.imageUrl=n.imageUrls[0]||'';
       n.imageMode=document.getElementById('ef-img-mode-'+n.id).value;
       n.imageWidth=normalizeImageWidth(document.getElementById('ef-img-width-'+n.id).value);

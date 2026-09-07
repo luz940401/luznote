@@ -292,6 +292,7 @@ function extractDriveFileId(url){
 function normalizeImageUrl(url){
   return imageUrlCandidates(url)[0]||'';
 }
+function driveResourceKey(url){try{return new URL(String(url||'').trim()).searchParams.get('resourcekey')||'';}catch{return '';}}
 function imageUrlCandidates(url){
   const raw=(url||'').trim();
   if(!raw)return [];
@@ -299,9 +300,12 @@ function imageUrlCandidates(url){
   const urls=[];
   if(id){
     const enc=encodeURIComponent(id);
-    urls.push(`https://lh3.googleusercontent.com/d/${enc}=w1200`);
-    urls.push(`https://drive.google.com/thumbnail?id=${enc}&sz=w1200`);
-    urls.push(`https://drive.google.com/uc?export=view&id=${enc}`);
+    const resource=driveResourceKey(raw),suffix=resource?`&resourcekey=${encodeURIComponent(resource)}`:'';
+    urls.push(`https://drive.google.com/thumbnail?id=${enc}&sz=w1200${suffix}`);
+    urls.push(`https://lh3.googleusercontent.com/d/${enc}=w1200${resource?'?resourcekey='+encodeURIComponent(resource):''}`);
+    urls.push(`https://drive.google.com/uc?export=view&id=${enc}${suffix}`);
+    urls.push(`https://drive.usercontent.google.com/download?id=${enc}&export=view${suffix}`);
+    urls.push(`https://drive.google.com/uc?export=download&id=${enc}${suffix}`);
   }
   urls.push(raw);
   return [...new Set(urls)];
@@ -324,7 +328,8 @@ function setImageWithFallback(img,url,onFail){
 function openableImageUrl(url){
   const raw=(url||'').trim();
   const id=extractDriveFileId(raw);
-  return id?`https://drive.google.com/file/d/${encodeURIComponent(id)}/view?usp=sharing`:raw;
+  const resource=driveResourceKey(raw);
+  return id?`https://drive.google.com/file/d/${encodeURIComponent(id)}/view?usp=sharing${resource?'&resourcekey='+encodeURIComponent(resource):''}`:raw;
 }
 function openImage(url){
   const target=openableImageUrl(url);
