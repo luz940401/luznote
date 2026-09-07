@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>冒險記錄｜線索收藏</title>
-<link rel="stylesheet" href="./clues.css">
-<script src="./adventure-shared.js"></script>
+<link rel="stylesheet" href="./clues.css?v=20260907-3">
+<script src="./adventure-shared.js?v=20260907-3"></script>
 </head>
 <body>
 <header>
@@ -14,7 +14,7 @@
   <button class="btn" id="sync-button">同步</button><button class="btn" id="mode-button" aria-pressed="false">整理收藏</button>
 </header>
 <main>
-  <section class="intro"><div><p class="eyebrow">沿途拾起的故事</p><h1>線索收藏</h1><p class="subtitle">那些找到的信件、帶走的道具，和還記得的細節。</p></div><button class="btn primary editor-only" id="add-button" hidden>＋ 加入線索</button></section>
+  <section class="intro"><div><p class="eyebrow">沿途拾起的故事</p><h1>線索收藏</h1><p class="subtitle">那些找到的信件、帶走的道具，和還記得的細節。</p></div><button class="btn primary" id="add-button">＋ 加入線索</button></section>
   <div class="status-row"><span id="sync-status" role="status">正在讀取收藏…</span><button class="text-button" id="connection-button">雲端設定</button><span class="mode-note" id="mode-note">觀看模式 · 點選圖片或標題查看完整內容</span></div>
   <section class="filters" aria-label="篩選線索">
     <input type="search" id="search" aria-label="搜尋線索" placeholder="搜尋標題、說明或取得地點…">
@@ -50,6 +50,6 @@
 <dialog id="lightbox" class="lightbox" aria-label="完整圖片"><button class="close" data-close="lightbox" aria-label="關閉完整圖片">×</button><p>可捲動查看完整圖片；手機可用瀏覽器手勢放大。</p><div class="page-controls"><button class="btn" id="full-prev">← 上一頁</button><span id="full-position" role="status"></span><button class="btn" id="full-next">下一頁 →</button></div><img id="full-image" alt=""><p id="full-error" hidden>這頁暫時無法載入，請切換其他頁面或開啟原圖。</p><a id="full-drive" class="btn" target="_blank" rel="noopener noreferrer">在 Google Drive 開啟這一頁 ↗</a></dialog>
 <dialog id="connection" aria-labelledby="connection-title"><form id="connection-form"><div class="dialog-head"><h2 id="connection-title">連結雲端</h2><button type="button" class="close" data-close="connection" aria-label="關閉">×</button></div><p class="form-hint">貼上與主筆記相同的 Google Apps Script Web App 網址。</p><label>Web App 網址<input id="url-input" type="url" required placeholder="https://script.google.com/macros/s/…/exec"></label><p id="connection-error" class="form-error" role="alert"></p><div class="dialog-actions"><button class="btn primary" type="submit">儲存並連線</button></div></form></dialog>
 <div class="toast" id="toast" role="status" hidden></div>
-<script src="./clues.js"></script>
+<script src="./clues.js?v=20260907-3"></script>
 </body>
 </html>
